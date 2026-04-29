@@ -45,6 +45,21 @@ plt.savefig("pipeline.png", dpi=150, bbox_inches="tight")
 
 Run [example.py](example.py) to regenerate the figure at the top.
 
+## Snakemake workflows
+
+`snakemake_io.from_snakemake(workflow_dir)` parses every `Snakefile` / `*.smk` in a directory, extracts each rule's `input:` and `output:` paths, matches outputs to downstream inputs to build the DAG, and lays the rules out left-to-right. The longest source-to-sink path stays on `y = 0`; off-spine rules drop below.
+
+```python
+from snakemake_io import from_snakemake
+
+d = from_snakemake("path/to/workflow", line_name="My pipeline")
+d.render()
+```
+
+See [example_snakemake.py](example_snakemake.py) for an end-to-end demo, and [graphics/snakemake_example.png](graphics/snakemake_example.png) for the result on a real cell-type annotation benchmarking workflow.
+
+Limitations: dynamic rules, `checkpoint` outputs, and rules whose paths come from complex Python expressions may not be picked up by the regex-based parser.
+
 ## Concepts
 
 - **Station** — a node at `(x, y)` on a grid. You control layout fully; there's no auto-layout.
