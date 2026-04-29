@@ -1,6 +1,6 @@
 # metroplot
 
-[![tests](https://github.com/USER/metroplot/actions/workflows/test.yml/badge.svg)](https://github.com/USER/metroplot/actions/workflows/test.yml)
+[![tests](https://github.com/s-weissbach/metroplot/actions/workflows/test.yml/badge.svg)](https://github.com/s-weissbach/metroplot/actions/workflows/test.yml)
 [![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![code style: matplotlib](https://img.shields.io/badge/built%20on-matplotlib-11557c.svg)](https://matplotlib.org/)
