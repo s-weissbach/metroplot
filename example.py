@@ -16,7 +16,7 @@ d = Diagram(legend_loc="upper right")
   .station("fastp",   4.0,  0.0, "fastp",         "ADAPTER TRIMMING", "below"))
 
 # Bulk RNA-seq DE lane
-(d.station("star",    6.0,  2.0, "STAR",          "ALIGNMENT", "left")
+(d.station("star",    6.0,  2.0, "STAR",          "ALIGNMENT", "below")
   .station("fcounts", 8.0,  2.0, "featureCounts", "QUANTIFICATION")
   .station("deseq2", 10.0,  2.0, "DESeq2",        "DIFFERENTIAL EXPR"))
 

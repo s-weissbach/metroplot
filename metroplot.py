@@ -42,7 +42,7 @@ class Diagram:
     station_radius: float = 0.22
     station_linewidth: float = 2.5
     line_width: float = 6.0
-    corner_radius: float = 0.40
+    corner_radius: float = 0.20
     label_font: int = 11
     sub_font: int = 8
     label_dy_main: float = 0.50
