@@ -1,5 +1,10 @@
 # metroplot
 
+[![tests](https://github.com/USER/metroplot/actions/workflows/test.yml/badge.svg)](https://github.com/USER/metroplot/actions/workflows/test.yml)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![code style: matplotlib](https://img.shields.io/badge/built%20on-matplotlib-11557c.svg)](https://matplotlib.org/)
+
 Subway-style pipeline diagrams for matplotlib. Define stations on a grid and lines that connect them; the renderer handles right-angle routing, parallel-track offsets where lines share segments, and station labels.
 
 ![example](example.png)
@@ -54,6 +59,15 @@ Run [example.py](example.py) to regenerate the figure at the top.
 
 `Diagram(track_spacing=..., station_radius=..., line_width=..., label_font=..., sub_font=...)` exposes the visual knobs.
 
+## Testing
+
+```sh
+pip install matplotlib pytest
+pytest
+```
+
+CI runs the suite on Python 3.10, 3.11, and 3.12 (see [`.github/workflows/test.yml`](.github/workflows/test.yml)).
+
 ## License
 
-MIT.
+[MIT](LICENSE).
