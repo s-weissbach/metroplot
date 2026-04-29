@@ -6,12 +6,31 @@ build-backend = "setuptools.backends.legacy:build"
 name = "metroplot"
 version = "0.1.0"
 description = "Subway-style pipeline diagrams for matplotlib"
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
+keywords = ["matplotlib", "visualization", "bioinformatics", "pipeline", "diagram"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 dependencies = ["matplotlib"]
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [project.scripts]
-metroplot = "cli:main"
+metroplot = "metroplot.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
+pythonpath = ["src"]
 testpaths = ["tests"]

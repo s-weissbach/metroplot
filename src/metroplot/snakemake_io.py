@@ -14,8 +14,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from _pipeline_layout import build_diagram_from_dag
-from metroplot import Diagram
+from metroplot._core import Diagram
+from metroplot._pipeline_layout import build_diagram_from_dag
 
 _PATH_RE = re.compile(r"""f?["']([^"'\n]+)["']""")
 

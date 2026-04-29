@@ -12,7 +12,19 @@ Subway-style pipeline diagrams for matplotlib. Define stations on a grid and lin
 
 ## Install
 
-No package on PyPI yet — drop `metroplot.py` next to your script. Only dependency is `matplotlib`.
+```sh
+pip install metroplot
+```
+
+Or from source:
+
+```sh
+git clone https://github.com/s-weissbach/metroplot.git
+cd metroplot
+pip install -e .
+```
+
+Only hard dependency is `matplotlib`.
 
 ## Usage
 
@@ -43,19 +55,43 @@ d.render()
 plt.savefig("pipeline.png", dpi=150, bbox_inches="tight")
 ```
 
-Run [example.py](example.py) to regenerate the figure at the top.
+Run [examples/example.py](examples/example.py) to regenerate the figure at the top.
+
+## CLI
+
+After `pip install metroplot` the `metroplot` command is available:
+
+```sh
+# From a Snakemake workflow directory
+metroplot snakemake path/to/workflow -o pipeline.png
+
+# From a Nextflow DSL2 directory
+metroplot nextflow path/to/workflow -o pipeline.png
+
+# Common options
+metroplot snakemake path/to/workflow \
+  --line-name "My pipeline" \
+  --color "#1f2a44" \
+  --label-overrides '{"star_align":"STAR"}' \
+  --sub-overrides '{"star_align":"ALIGNMENT"}' \
+  --column-spacing 2.5 \
+  --branch-spacing 2.5 \
+  --no-legend \
+  --dpi 300 \
+  --figsize 18 6
+```
 
 ## Pipeline workflows
 
 metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Two formats are supported:
 
-- **Snakemake** — `from snakemake_io import from_snakemake` parses every `Snakefile` / `*.smk` under a directory, matches each rule's `output:` paths to downstream `input:` paths to derive the DAG.
-- **Nextflow (DSL2)** — `from nextflow_io import from_nextflow` parses every `*.nf` file, finds `process NAME { … }` blocks, and extracts edges by reading `workflow { … }` blocks for invocations like `STAR(TRIM.out)`.
+- **Snakemake** — `from metroplot.snakemake_io import from_snakemake` parses every `Snakefile` / `*.smk` under a directory, matches each rule's `output:` paths to downstream `input:` paths to derive the DAG.
+- **Nextflow (DSL2)** — `from metroplot.nextflow_io import from_nextflow` parses every `*.nf` file, finds `process NAME { … }` blocks, and extracts edges by reading `workflow { … }` blocks for invocations like `STAR(TRIM.out)`.
 
-Both share the same downstream layout/Diagram-builder ([_pipeline_layout.py](_pipeline_layout.py)): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
+Both share the same downstream layout/Diagram-builder (`metroplot._pipeline_layout`): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
 
 ```python
-from snakemake_io import from_snakemake          # or: from nextflow_io import from_nextflow
+from metroplot.snakemake_io import from_snakemake   # or: from metroplot.nextflow_io import from_nextflow
 
 d = from_snakemake(
     "path/to/workflow",
@@ -72,10 +108,10 @@ d.render()
 
 End-to-end demos:
 
-- Snakemake on a real cell-type annotation benchmarking workflow → [example_snakemake.py](example_snakemake.py) → [graphics/snakemake_example.png](graphics/snakemake_example.png)
-- Nextflow on an nf-core-style RNA-seq pipeline → [example_nextflow.py](example_nextflow.py) → [graphics/nextflow_example.png](graphics/nextflow_example.png)
+- Snakemake on a real cell-type annotation benchmarking workflow → [examples/example_snakemake.py](examples/example_snakemake.py) → [graphics/snakemake_example.png](graphics/snakemake_example.png)
+- Nextflow on an nf-core-style RNA-seq pipeline → [examples/example_nextflow.py](examples/example_nextflow.py) → [graphics/nextflow_example.png](graphics/nextflow_example.png)
 
-Both parsers are best-effort regex-based and do not understand dynamic rules / checkpoint outputs (Snakemake) or subworkflow imports / channel operators like `map`, `branch`, `combine` (Nextflow). For anything they miss, override at the kwarg layer or pass extra rules/edges into [`_pipeline_layout.build_diagram_from_dag`](_pipeline_layout.py) directly.
+Both parsers are best-effort regex-based and do not understand dynamic rules / checkpoint outputs (Snakemake) or subworkflow imports / channel operators like `map`, `branch`, `combine` (Nextflow). For anything they miss, override at the kwarg layer or pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
 
 ## Concepts
 
@@ -91,7 +127,7 @@ Both parsers are best-effort regex-based and do not understand dynamic rules / c
 ## Testing
 
 ```sh
-pip install matplotlib pytest
+pip install -e ".[dev]"
 pytest
 ```
 

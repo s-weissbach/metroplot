@@ -5,7 +5,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 import pytest
-from cli import main
+from metroplot.cli import main
 
 
 SNAKEFILE = textwrap.dedent("""\

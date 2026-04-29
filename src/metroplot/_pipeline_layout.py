@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Iterable, Mapping
 
-from metroplot import Diagram
+from metroplot._core import Diagram
 
 
 def build_diagram_from_dag(

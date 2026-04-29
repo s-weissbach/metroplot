@@ -4,7 +4,7 @@ import textwrap
 import matplotlib
 matplotlib.use("Agg")
 
-from nextflow_io import from_nextflow, parse_nextflow_text
+from metroplot.nextflow_io import from_nextflow, parse_nextflow_text
 
 
 SAMPLE = textwrap.dedent('''

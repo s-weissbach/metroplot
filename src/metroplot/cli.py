@@ -42,7 +42,7 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
 
 
 def cmd_snakemake(args: argparse.Namespace) -> None:
-    from snakemake_io import from_snakemake
+    from metroplot.snakemake_io import from_snakemake
 
     skip = list(args.skip_rules) if args.skip_rules else ["all"]
     d = from_snakemake(
@@ -65,7 +65,7 @@ def cmd_snakemake(args: argparse.Namespace) -> None:
 
 
 def cmd_nextflow(args: argparse.Namespace) -> None:
-    from nextflow_io import from_nextflow
+    from metroplot.nextflow_io import from_nextflow
 
     skip = list(args.skip_processes) if args.skip_processes else []
     d = from_nextflow(

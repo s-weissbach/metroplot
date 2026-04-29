@@ -19,8 +19,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable, Mapping
 
-from _pipeline_layout import build_diagram_from_dag
-from metroplot import Diagram
+from metroplot._core import Diagram
+from metroplot._pipeline_layout import build_diagram_from_dag
 
 _PROCESS_RE = re.compile(r"^\s*process\s+(\w+)\s*\{", re.M)
 _WORKFLOW_RE = re.compile(r"workflow(?:\s+\w+)?\s*\{", re.M)
@@ -34,8 +34,6 @@ def parse_nextflow_text(text: str) -> tuple[list[dict], dict[str, set[str]]]:
     rules = [{"name": n} for n in sorted(process_names)]
 
     deps: dict[str, set[str]] = defaultdict(set)
-    # channel_owner: channel_name (lowercase identifier) -> producer process
-    # E.g., "trim_ch = TRIM(reads)" => channel_owner["trim_ch"] = "TRIM"
     channel_owner: dict[str, str] = {}
 
     for body in _iter_workflow_bodies(text):

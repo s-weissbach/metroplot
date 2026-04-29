@@ -4,7 +4,7 @@ import textwrap
 import matplotlib
 matplotlib.use("Agg")
 
-from snakemake_io import (
+from metroplot.snakemake_io import (
     build_dag,
     from_snakemake,
     parse_snakefile_text,

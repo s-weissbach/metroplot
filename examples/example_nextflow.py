@@ -10,7 +10,7 @@ import tempfile
 
 import matplotlib.pyplot as plt
 
-from nextflow_io import from_nextflow
+from metroplot.nextflow_io import from_nextflow
 
 PIPELINE = """\
 process FASTQC {

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from snakemake_io import from_snakemake
+from metroplot.snakemake_io import from_snakemake
 
 WORKFLOW = Path.home() / "Desktop" / "benchmarking_project" / "workflow"
 
