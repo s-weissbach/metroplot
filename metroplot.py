@@ -23,7 +23,9 @@ class Station:
     y: float
     label: str = ""
     sub: str = ""
-    label_pos: str = "above"  # "above" | "below"
+    label_pos: str = "above"  # "above" | "below" | "left" | "right"
+    label_dx: float = 0.0
+    label_dy: float = 0.0
 
 
 @dataclass
@@ -47,11 +49,14 @@ class Diagram:
     label_dy_sub: float = 0.25
     legend_loc: str | None = None
     legend_font: int = 10
+    auto_bend: bool = True
     stations: dict = field(default_factory=dict)
     lines: list = field(default_factory=list)
 
-    def station(self, name, x, y, label="", sub="", label_pos="above"):
-        self.stations[name] = Station(name, x, y, label, sub, label_pos)
+    def station(self, name, x, y, label="", sub="", label_pos="above",
+                label_dx=0.0, label_dy=0.0):
+        self.stations[name] = Station(name, x, y, label, sub, label_pos,
+                                      label_dx, label_dy)
         return self
 
     def line(self, name, color, routes, bend="hv"):
@@ -103,10 +108,12 @@ class Diagram:
 
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
-                bend = ln.bends[ri] if ri < len(ln.bends) else "hv"
+                user_bend = ln.bends[ri] if ri < len(ln.bends) else "hv"
                 for a, b in zip(route[:-1], route[1:]):
-                    self._draw_segment(ax, self.stations[a], self.stations[b],
-                                       ln, line_offset[li], bend)
+                    sa, sb = self.stations[a], self.stations[b]
+                    bend = self._pick_bend(sa, sb, line_offset[li], user_bend,
+                                           station_dy) if self.auto_bend else user_bend
+                    self._draw_segment(ax, sa, sb, ln, line_offset[li], bend)
 
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
@@ -120,9 +127,8 @@ class Diagram:
             handles = [Line2D([0], [0], color=ln.color,
                               linewidth=self.line_width, solid_capstyle="round",
                               label=ln.name) for ln in self.lines]
-            ax.legend(handles=handles, loc=self.legend_loc,
-                      frameon=True, framealpha=0.95,
-                      edgecolor="#cccccc", fontsize=self.legend_font,
+            ax.legend(handles=handles, loc=self.legend_loc, frameon=False,
+                      fontsize=self.legend_font,
                       borderpad=0.6, handlelength=1.6, handletextpad=0.7).set_zorder(20)
 
         ax.set_aspect("equal")
@@ -155,6 +161,34 @@ class Diagram:
                                edgecolor=ln.color, linewidth=self.line_width,
                                capstyle="round", joinstyle="round", zorder=5))
 
+    def _pick_bend(self, sa, sb, offset, user_bend, station_dy):
+        """Choose hv or vh so the L-bend's vertical leg doesn't pass through
+        another station's circle. Returns user_bend when both options are
+        clear (or both blocked)."""
+        x1, y1 = sa.x, sa.y
+        x2, y2 = sb.x, sb.y
+        if x1 == x2 or y1 == y2:
+            return user_bend
+        y_lo = min(y1 + offset, y2 + offset)
+        y_hi = max(y1 + offset, y2 + offset)
+
+        def blocks(leg_x):
+            for s in self.stations.values():
+                if s.name in (sa.name, sb.name):
+                    continue
+                sy = s.y + station_dy.get(s.name, 0.0)
+                if abs(s.x - leg_x) <= self.station_radius and y_lo - self.station_radius < sy < y_hi + self.station_radius:
+                    return True
+            return False
+
+        hv_blocked = blocks(x2 + offset)
+        vh_blocked = blocks(x1 + offset)
+        if hv_blocked and not vh_blocked:
+            return "vh"
+        if vh_blocked and not hv_blocked:
+            return "hv"
+        return user_bend
+
     def _rounded_l(self, start, corner, end):
         """Three vertices defining an axis-aligned L. Insert a quadratic Bezier
         at the corner with control point at the corner itself."""
@@ -174,12 +208,30 @@ class Diagram:
                 [Path.MOVETO, Path.LINETO, Path.CURVE3, Path.CURVE3, Path.LINETO])
 
     def _draw_label(self, ax, s, cy):
+        # Each label_pos defines an offset and alignment for both the main
+        # bold label and the smaller sub label. label_dx / label_dy on the
+        # station add a free-form tweak on top.
         if s.label_pos == "above":
-            dy_main, dy_sub, va = self.label_dy_main, self.label_dy_sub, "bottom"
+            main = (0,  self.label_dy_main, "center", "bottom")
+            sub  = (0,  self.label_dy_sub,  "center", "bottom")
+        elif s.label_pos == "below":
+            main = (0, -self.label_dy_main, "center", "top")
+            sub  = (0, -self.label_dy_sub,  "center", "top")
+        elif s.label_pos == "left":
+            main = (-self.label_dy_main, 0, "right", "bottom")
+            sub  = (-self.label_dy_main, 0, "right", "top")
+        elif s.label_pos == "right":
+            main = ( self.label_dy_main, 0, "left", "bottom")
+            sub  = ( self.label_dy_main, 0, "left", "top")
         else:
-            dy_main, dy_sub, va = -self.label_dy_main, -self.label_dy_sub, "top"
-        ax.text(s.x, cy + dy_main, s.label, ha="center", va=va,
+            raise ValueError(f"unknown label_pos: {s.label_pos!r}")
+
+        dx_m, dy_m, ha_m, va_m = main
+        dx_s, dy_s, ha_s, va_s = sub
+        ax.text(s.x + dx_m + s.label_dx, cy + dy_m + s.label_dy,
+                s.label, ha=ha_m, va=va_m,
                 fontweight="bold", fontsize=self.label_font, zorder=15)
         if s.sub:
-            ax.text(s.x, cy + dy_sub, s.sub, ha="center", va=va,
+            ax.text(s.x + dx_s + s.label_dx, cy + dy_s + s.label_dy,
+                    s.sub, ha=ha_s, va=va_s,
                     fontsize=self.sub_font, color="#333", zorder=15)

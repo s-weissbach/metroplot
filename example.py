@@ -16,7 +16,7 @@ d = Diagram(legend_loc="upper right")
   .station("fastp",   4.0,  0.0, "fastp",         "ADAPTER TRIMMING", "below"))
 
 # Bulk RNA-seq DE lane
-(d.station("star",    6.0,  2.0, "STAR",          "ALIGNMENT")
+(d.station("star",    6.0,  2.0, "STAR",          "ALIGNMENT", "left")
   .station("fcounts", 8.0,  2.0, "featureCounts", "QUANTIFICATION")
   .station("deseq2", 10.0,  2.0, "DESeq2",        "DIFFERENTIAL EXPR"))
 
@@ -39,12 +39,14 @@ d = Diagram(legend_loc="upper right")
   .station("enrich",   14.0,  0.0, "enrichR",      "PATHWAY ENRICHMENT", "below")
   .station("report",   16.0,  0.0, "Quarto",       "FIGURE-READY REPORT", "below"))
 
-# Bulk has two routes: the main DE path (hv), and the splice branch from
-# STAR going up to rMATS / MASER (vh, so it goes up first then right).
+# Bulk has two routes: the main DE path and a splice branch from STAR up to
+# rMATS / MASER. Per-segment bend orientation is chosen automatically so the
+# divergence and convergence segments don't visually run through the lanes
+# they pass between.
 d.line("Bulk RNA-seq", NAVY, [
     ["fastq", "fastqc", "fastp", "star", "fcounts", "deseq2", "mofa", "enrich", "report"],
     ["star", "rmats", "maser"],
-], bend=["hv", "vh"])
+])
 
 d.line("scRNA-seq", CORAL, [
     ["fastq", "fastqc", "fastp", "cellranger", "scanpy_qc", "leiden", "mofa", "enrich", "report"],
