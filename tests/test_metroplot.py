@@ -81,10 +81,9 @@ def test_bend_hv_vs_vh_corner_differs():
                         .station("b", 3, -2))
     ax_hv = stations().line("l", "#000", [["a", "b"]], bend="hv").render()
     ax_vh = stations().line("l", "#000", [["a", "b"]], bend="vh").render()
-    # hv corner is at (3, 0); vh corner is at (0, -2). Verify by checking
-    # whether any plotted segment hits y=-2 at x=0 (vh) vs x=3 (hv).
-    def corners(ax):
-        return [(ln.get_xdata()[0], ln.get_ydata()[0],
-                 ln.get_xdata()[-1], ln.get_ydata()[-1]) for ln in ax.get_lines()]
-    assert corners(ax_hv) != corners(ax_vh)
+    # The L-bend is a single Line2D with three points; the middle point is
+    # the corner and differs between hv and vh.
+    def points(ax):
+        return [(tuple(ln.get_xdata()), tuple(ln.get_ydata())) for ln in ax.get_lines()]
+    assert points(ax_hv) != points(ax_vh)
     plt.close("all")
