@@ -45,20 +45,37 @@ plt.savefig("pipeline.png", dpi=150, bbox_inches="tight")
 
 Run [example.py](example.py) to regenerate the figure at the top.
 
-## Snakemake workflows
+## Pipeline workflows
 
-`snakemake_io.from_snakemake(workflow_dir)` parses every `Snakefile` / `*.smk` in a directory, extracts each rule's `input:` and `output:` paths, matches outputs to downstream inputs to build the DAG, and lays the rules out left-to-right. The longest source-to-sink path stays on `y = 0`; off-spine rules drop below.
+metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Two formats are supported:
+
+- **Snakemake** — `from snakemake_io import from_snakemake` parses every `Snakefile` / `*.smk` under a directory, matches each rule's `output:` paths to downstream `input:` paths to derive the DAG.
+- **Nextflow (DSL2)** — `from nextflow_io import from_nextflow` parses every `*.nf` file, finds `process NAME { … }` blocks, and extracts edges by reading `workflow { … }` blocks for invocations like `STAR(TRIM.out)`.
+
+Both share the same downstream layout/Diagram-builder ([_pipeline_layout.py](_pipeline_layout.py)): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
 
 ```python
-from snakemake_io import from_snakemake
+from snakemake_io import from_snakemake          # or: from nextflow_io import from_nextflow
 
-d = from_snakemake("path/to/workflow", line_name="My pipeline")
+d = from_snakemake(
+    "path/to/workflow",
+    line_name="My pipeline",
+    label_overrides={"run_method": "scanpy/Seurat"},     # snake_case rule name → display label
+    sub_overrides={"run_method": "ANNOTATION"},          # small uppercase line under each label
+    lanes={                                              # optional: split into multiple parallel lines
+        "QC":   {"color": "#aaaaaa", "rules": ["FASTQC", "MULTIQC"]},
+        "Main": {"color": "#1f2a44", "rules": ["FASTP", "STAR", "FEATURECOUNTS", "DESEQ2"]},
+    },
+)
 d.render()
 ```
 
-See [example_snakemake.py](example_snakemake.py) for an end-to-end demo, and [graphics/snakemake_example.png](graphics/snakemake_example.png) for the result on a real cell-type annotation benchmarking workflow.
+End-to-end demos:
 
-Limitations: dynamic rules, `checkpoint` outputs, and rules whose paths come from complex Python expressions may not be picked up by the regex-based parser.
+- Snakemake on a real cell-type annotation benchmarking workflow → [example_snakemake.py](example_snakemake.py) → [graphics/snakemake_example.png](graphics/snakemake_example.png)
+- Nextflow on an nf-core-style RNA-seq pipeline → [example_nextflow.py](example_nextflow.py) → [graphics/nextflow_example.png](graphics/nextflow_example.png)
+
+Both parsers are best-effort regex-based and do not understand dynamic rules / checkpoint outputs (Snakemake) or subworkflow imports / channel operators like `map`, `branch`, `combine` (Nextflow). For anything they miss, override at the kwarg layer or pass extra rules/edges into [`_pipeline_layout.build_diagram_from_dag`](_pipeline_layout.py) directly.
 
 ## Concepts
 
