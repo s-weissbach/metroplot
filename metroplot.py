@@ -6,6 +6,8 @@ A line with multiple routes that share a station encodes a split at that station
 """
 from __future__ import annotations
 
+import math
+import warnings
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Sequence
@@ -106,18 +108,26 @@ class Diagram:
             for name, lis in station_lines.items()
         }
 
+        # Auto-grow the station radius if needed: line endpoints sit at
+        # offset distance in both x and y from a station's center, so we
+        # need radius >= sqrt(2) * max_offset for them to stay hidden.
+        max_offset = max((abs(o) for o in line_offset.values()), default=0.0)
+        radius = max(self.station_radius, math.sqrt(2) * max_offset * 1.05)
+
+        self._validate_layout(station_dy, radius)
+
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
                 user_bend = ln.bends[ri] if ri < len(ln.bends) else "hv"
                 for a, b in zip(route[:-1], route[1:]):
                     sa, sb = self.stations[a], self.stations[b]
                     bend = self._pick_bend(sa, sb, line_offset[li], user_bend,
-                                           station_dy) if self.auto_bend else user_bend
+                                           station_dy, radius) if self.auto_bend else user_bend
                     self._draw_segment(ax, sa, sb, ln, line_offset[li], bend)
 
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
-            ax.add_patch(Circle((s.x, cy), self.station_radius,
+            ax.add_patch(Circle((s.x, cy), radius,
                                 facecolor="white", edgecolor="black",
                                 linewidth=self.station_linewidth, zorder=10))
             if s.label:
@@ -161,7 +171,7 @@ class Diagram:
                                edgecolor=ln.color, linewidth=self.line_width,
                                capstyle="round", joinstyle="round", zorder=5))
 
-    def _pick_bend(self, sa, sb, offset, user_bend, station_dy):
+    def _pick_bend(self, sa, sb, offset, user_bend, station_dy, radius):
         """Choose hv or vh so the L-bend's vertical leg doesn't pass through
         another station's circle. Returns user_bend when both options are
         clear (or both blocked)."""
@@ -177,7 +187,7 @@ class Diagram:
                 if s.name in (sa.name, sb.name):
                     continue
                 sy = s.y + station_dy.get(s.name, 0.0)
-                if abs(s.x - leg_x) <= self.station_radius and y_lo - self.station_radius < sy < y_hi + self.station_radius:
+                if abs(s.x - leg_x) <= radius and y_lo - radius < sy < y_hi + radius:
                     return True
             return False
 
@@ -188,6 +198,27 @@ class Diagram:
         if vh_blocked and not hv_blocked:
             return "hv"
         return user_bend
+
+    def _validate_layout(self, station_dy, radius):
+        """Raise on stations sharing exact coordinates; warn when stations
+        sit closer than 2 * radius (their circles would overlap)."""
+        items = list(self.stations.values())
+        for i, sa in enumerate(items):
+            ax_, ay = sa.x, sa.y + station_dy.get(sa.name, 0.0)
+            for sb in items[i + 1:]:
+                bx, by = sb.x, sb.y + station_dy.get(sb.name, 0.0)
+                if ax_ == bx and ay == by:
+                    raise ValueError(
+                        f"stations {sa.name!r} and {sb.name!r} share coordinates "
+                        f"({ax_}, {ay})"
+                    )
+                dist = math.hypot(ax_ - bx, ay - by)
+                if dist < 2 * radius:
+                    warnings.warn(
+                        f"stations {sa.name!r} and {sb.name!r} are closer than "
+                        f"2 * station_radius (distance {dist:.3f}, threshold {2 * radius:.3f})",
+                        stacklevel=2,
+                    )
 
     def _rounded_l(self, start, corner, end):
         """Three vertices defining an axis-aligned L. Insert a quadratic Bezier

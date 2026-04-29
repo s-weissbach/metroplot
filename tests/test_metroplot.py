@@ -75,6 +75,45 @@ def test_lone_segment_has_zero_offset():
     plt.close("all")
 
 
+def test_duplicate_station_coords_raise():
+    d = (Diagram()
+         .station("a", 1, 1, "A")
+         .station("b", 1, 1, "B")
+         .line("solo", "#000", [["a", "b"]]))
+    import pytest
+    with pytest.raises(ValueError, match="share coordinates"):
+        d.render()
+    plt.close("all")
+
+
+def test_close_stations_warn():
+    d = (Diagram()
+         .station("a", 0, 0, "A")
+         .station("b", 0.1, 0, "B")  # well within 2 * default radius
+         .line("solo", "#000", [["a", "b"]]))
+    import warnings as _w
+    with _w.catch_warnings(record=True) as caught:
+        _w.simplefilter("always")
+        d.render()
+    assert any("closer than" in str(w.message) for w in caught)
+    plt.close("all")
+
+
+def test_station_radius_auto_grows_for_many_lines():
+    """With many parallel lines, the rendered circle should be bigger than
+    the user-specified station_radius so line endpoints stay hidden."""
+    d = Diagram(station_radius=0.10, track_spacing=0.20)
+    d.station("a", 0, 0).station("b", 5, 0)
+    for i in range(5):
+        d.line(f"L{i}", "#000", [["a", "b"]])
+    ax = d.render()
+    radii = [p.get_radius() for p in ax.patches if isinstance(p, Circle)]
+    # 5 lines, spacing 0.20 -> max_offset = 0.40 -> required >= sqrt(2) * 0.40 ~= 0.566
+    assert radii[0] > 0.10
+    assert radii[0] >= 0.40 * 1.4  # roughly sqrt(2) * max_offset
+    plt.close("all")
+
+
 def test_bend_hv_vs_vh_corner_differs():
     stations = lambda: (Diagram()
                         .station("a", 0, 0)

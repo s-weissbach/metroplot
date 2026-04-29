@@ -58,5 +58,5 @@ d.line("ATAC-seq", BLUE, [
 fig, ax = plt.subplots(figsize=(15, 6))
 d.render(ax)
 plt.tight_layout()
-plt.savefig("example.png", dpi=150, bbox_inches="tight")
-print("wrote example.png")
+plt.savefig("graphics/example.png", dpi=150, bbox_inches="tight")
+print("wrote graphics/example.png")
