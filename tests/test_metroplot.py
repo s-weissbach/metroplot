@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import Circle
+from matplotlib.patches import Circle, PathPatch
 
 from metroplot import Diagram, Line, Station
 
@@ -81,9 +81,11 @@ def test_bend_hv_vs_vh_corner_differs():
                         .station("b", 3, -2))
     ax_hv = stations().line("l", "#000", [["a", "b"]], bend="hv").render()
     ax_vh = stations().line("l", "#000", [["a", "b"]], bend="vh").render()
-    # The L-bend is a single Line2D with three points; the middle point is
-    # the corner and differs between hv and vh.
-    def points(ax):
-        return [(tuple(ln.get_xdata()), tuple(ln.get_ydata())) for ln in ax.get_lines()]
-    assert points(ax_hv) != points(ax_vh)
+    # L-bends render as PathPatch with a Bezier-rounded corner; the corner
+    # control point differs between hv (corner at (3, 0)) and vh (corner at (0, -2)).
+    def corners(ax):
+        return [tuple(p.get_path().vertices.tolist())
+                for p in ax.patches if isinstance(p, PathPatch)]
+    assert corners(ax_hv) != corners(ax_vh)
+    assert len(corners(ax_hv)) == 1 and len(corners(ax_vh)) == 1
     plt.close("all")
