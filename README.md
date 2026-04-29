@@ -1,4 +1,4 @@
-# metroplot
+<p align="center"><img src="graphics/metroplot_logo.png" alt="metroplot" width="400"/></p>
 
 [![tests](https://github.com/s-weissbach/metroplot/actions/workflows/test.yml/badge.svg)](https://github.com/s-weissbach/metroplot/actions/workflows/test.yml)
 [![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
@@ -7,11 +7,8 @@
 
 Subway-style pipeline diagrams for matplotlib. Define stations on a grid and lines that connect them; the renderer handles right-angle routing, parallel-track offsets where lines share segments, and station labels.
 
-![example](example.png)
+![example](graphics/example.png)
 
-## Why
-
-Pipeline figures in publications often want to look like a transit map: clear stops, parallel branches, splits and merges. Drawing one by hand in Illustrator is tedious and brittle. `metroplot` turns the figure into a small declarative spec you can keep next to your manuscript.
 
 ## Install
 
