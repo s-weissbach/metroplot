@@ -17,33 +17,40 @@ Usage
 """
 from __future__ import annotations
 
+import random
 import re
 import xml.etree.ElementTree as ET
+from collections import defaultdict
 from pathlib import Path
 
 _NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", _NS)
 ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
-_TRACK_RE = re.compile(r"^metro-track-(\d+)-\d+$")
+# GID format: metro-track-{line_index}-{route_index}-{segment_index}
+_TRACK_RE = re.compile(r"^metro-track-(\d+)-(\d+)-\d+$")
 
 
 def inject_flow_animation(
     svg_path: str | Path,
     line_colors: list[str],
     *,
-    speed: float = 2.0,
+    speed: float = 3.0,
     dash_len: float = 6.0,
-    gap_len: float = 22.0,
-    overlay_opacity: float = 0.38,
+    gap_len: float = 44.0,
+    overlay_opacity: float = 0.42,
     lighten: float = 0.30,
+    seed: int | None = None,
 ) -> None:
     """Add a flowing-dash animation overlay to a metroplot SVG file.
 
     The file is modified in-place.  Track elements must carry GIDs of the
-    form ``metro-track-{line_index}-{segment_index}`` (set by
+    form ``metro-track-{line_index}-{route_index}-{segment_index}`` (set by
     ``Diagram.render()``), and station elements must carry GIDs of the form
     ``metro-station-{name}`` so the overlay can be inserted behind them.
+
+    When a line has multiple routes (branches), one route is chosen at random
+    for the animation so the dashes don't appear to duplicate at splits.
 
     Parameters
     ----------
@@ -59,33 +66,53 @@ def inject_flow_animation(
         Overall opacity of the animated overlay (0–1).
     lighten:
         Mix the line colour toward white (0 = exact colour, 1 = white).
+    seed:
+        Optional RNG seed for reproducible branch selection.
     """
+    rng = random.Random(seed)
     path = Path(svg_path)
     content = path.read_text(encoding="utf-8")
 
     tree = ET.parse(path)
     root = tree.getroot()
 
-    # --- Collect track elements grouped by line index ---------------------
-    tracks_by_line: dict[int, list[ET.Element]] = {}
+    # --- Collect track elements grouped by (line_index, route_index) ------
+    tracks_by_line_route: dict[tuple[int, int], list[ET.Element]] = defaultdict(list)
     for elem in root.iter():
         gid = elem.get("id", "")
         m = _TRACK_RE.match(gid)
         if m:
-            li = int(m.group(1))
-            tracks_by_line.setdefault(li, []).append(elem)
+            li, ri = int(m.group(1)), int(m.group(2))
+            tracks_by_line_route[(li, ri)].append(elem)
 
-    if not tracks_by_line:
+    if not tracks_by_line_route:
         return
 
-    # --- Build CSS with per-line phase offsets (so lines don't sync) ------
+    # For each line, collect available route indices then pick one randomly
+    routes_per_line: dict[int, list[int]] = defaultdict(list)
+    for li, ri in tracks_by_line_route:
+        routes_per_line[li].append(ri)
+
+    chosen_route: dict[int, int] = {
+        li: rng.choice(sorted(routes))
+        for li, routes in routes_per_line.items()
+    }
+
+    # Build tracks_by_line using only the chosen route per line
+    tracks_by_line: dict[int, list[ET.Element]] = {}
+    for (li, ri), elems in tracks_by_line_route.items():
+        if ri == chosen_route[li]:
+            tracks_by_line.setdefault(li, []).extend(elems)
+
+    # --- Build CSS with per-line phase offsets (so parallel tracks stagger) -
     period = dash_len + gap_len
     css_parts = ["<style>"]
 
-    # One keyframe per line with a different phase so they look independent
+    # Stagger each line by half a period divided across lines so dashes on
+    # parallel shared segments are visually offset from each other.
+    n_lines = max(tracks_by_line.keys()) + 1 if tracks_by_line else 1
     for li in sorted(tracks_by_line):
-        # Phase offset: stagger by 1/3 of the period per line
-        phase = (li * period / 3) % period
+        phase = (li * period / max(n_lines, 2)) % period
         css_parts += [
             f"@keyframes metro-flow-{li} {{",
             f"  from {{ stroke-dashoffset: {period + phase:.1f}; }}",
@@ -131,10 +158,6 @@ def inject_flow_animation(
     overlay_block = "\n".join(overlay_parts)
 
     # --- Insert overlay BEFORE the first station group --------------------
-    # Stations are tagged metro-station-{name}.  The overlay must sit behind
-    # them so dashes don't render on top of station circles.
-    # Strategy: find the raw text position of the first <g id="metro-station-
-    # and insert the overlay+CSS block just before it.
     station_marker = re.search(r'<g id="metro-station-', content)
     if station_marker:
         insert_pos = station_marker.start()
@@ -145,7 +168,6 @@ def inject_flow_animation(
             + content[insert_pos:]
         )
     else:
-        # Fallback: insert before </svg>
         new_content = content.replace(
             "</svg>",
             f"{overlay_block}\n{css_block}\n</svg>",

@@ -53,6 +53,8 @@ class _SectionSpec:
     width: float | None
     height: float | None
     padding: float
+    label_pos: str = "top-middle"   # top-left|top-middle|top-right|bottom-*|left|right
+    label_rotation: float = 0.0
 
 
 @dataclass
@@ -81,13 +83,14 @@ class Diagram:
         return self
 
     def section(self, label, *, stations=None, x=None, y=None,
-                width=None, height=None, sub="", padding=0.65):
+                width=None, height=None, sub="", padding=0.65,
+                label_pos="top-middle", label_rotation=0.0):
         """Add a labelled grouping box around a set of stations.
 
         Parameters
         ----------
         label:
-            Text shown inside the top of the box.
+            Text shown on the box.
         stations:
             List of station names whose coordinates define the bounding box.
             Bounds are resolved at render time so station_dy offsets are
@@ -96,9 +99,16 @@ class Diagram:
         x, y, width, height:
             Manual lower-left corner and dimensions (diagram coordinates).
         sub:
-            Optional smaller label drawn below the main label.
+            Optional smaller label drawn alongside the main label.
         padding:
             Extra space added around station positions when using auto bounds.
+        label_pos:
+            Where to place the label relative to the box.  One of:
+            ``"top-left"``, ``"top-middle"`` (default), ``"top-right"``,
+            ``"bottom-left"``, ``"bottom-middle"``, ``"bottom-right"``,
+            ``"left"``, ``"right"``.
+        label_rotation:
+            Degrees to rotate the label text (default 0).
         """
         if stations is None and any(v is None for v in (x, y, width, height)):
             raise ValueError(
@@ -109,6 +119,8 @@ class Diagram:
             station_names=list(stations) if stations is not None else None,
             x=x, y=y, width=width, height=height,
             padding=padding,
+            label_pos=label_pos,
+            label_rotation=label_rotation,
         ))
         return self
 
@@ -183,7 +195,7 @@ class Diagram:
             self._draw_section(ax, spec, station_dy, th)
 
         # --- Draw tracks ------------------------------------------------
-        seg_counters: dict[int, int] = defaultdict(int)
+        seg_counters: dict[tuple, int] = defaultdict(int)
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
                 user_bend = ln.bends[ri] if ri < len(ln.bends) else "hv"
@@ -191,8 +203,8 @@ class Diagram:
                     sa, sb = self.stations[a], self.stations[b]
                     bend = self._pick_bend(sa, sb, line_offset[li], user_bend,
                                            station_dy, radius) if self.auto_bend else user_bend
-                    gid = f"metro-track-{li}-{seg_counters[li]}"
-                    seg_counters[li] += 1
+                    gid = f"metro-track-{li}-{ri}-{seg_counters[(li, ri)]}"
+                    seg_counters[(li, ri)] += 1
                     self._draw_segment(ax, sa, sb, ln, line_offset[li], bend,
                                        gid=gid, theme=th)
 
@@ -289,19 +301,34 @@ class Diagram:
         )
         ax.add_patch(patch)
 
-        # Label above the box, centred
         cx = lx + w / 2
-        top = ly + h  # outer top edge of the rendered box
-        ax.text(cx, top + 0.10, spec.label,
-                ha="center", va="bottom",
+        cy_box = ly + h / 2
+        top = ly + h
+        gap = 0.12
+
+        _pos_map = {
+            "top-left":      (lx,       top + gap, "left",   "bottom"),
+            "top-middle":    (cx,       top + gap, "center", "bottom"),
+            "top-right":     (lx + w,   top + gap, "right",  "bottom"),
+            "bottom-left":   (lx,       ly  - gap, "left",   "top"),
+            "bottom-middle": (cx,       ly  - gap, "center", "top"),
+            "bottom-right":  (lx + w,   ly  - gap, "right",  "top"),
+            "left":          (lx - gap, cy_box,    "right",  "center"),
+            "right":         (lx+w+gap, cy_box,    "left",   "center"),
+        }
+        tx, ty, ha, va = _pos_map.get(spec.label_pos, _pos_map["top-middle"])
+        rot = spec.label_rotation
+
+        ax.text(tx, ty, spec.label,
+                ha=ha, va=va, rotation=rot,
                 fontsize=th.section_label_font,
                 color=th.section_label_color,
                 fontweight="bold",
                 zorder=12)
         if spec.sub:
-            ax.text(cx, top + 0.10 + th.section_label_font * 0.016,
-                    spec.sub,
-                    ha="center", va="bottom",
+            sub_gap = th.section_label_font * 0.016
+            ax.text(tx, ty + sub_gap, spec.sub,
+                    ha=ha, va=va, rotation=rot,
                     fontsize=max(th.section_label_font - 2, 6),
                     color=th.section_label_color,
                     zorder=12)
