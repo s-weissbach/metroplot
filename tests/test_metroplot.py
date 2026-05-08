@@ -32,7 +32,9 @@ def test_render_creates_one_circle_per_station():
     d = _basic().line("main", "#111", [["a", "b", "c"]])
     ax = d.render()
     circles = [p for p in ax.patches if isinstance(p, Circle)]
-    assert len(circles) == 3
+    # Each station gets an outer ring + inner dot (default "light" theme), so 2 per station.
+    n_stations = len(d.stations)
+    assert len(circles) == n_stations * 2
     plt.close("all")
 
 

@@ -29,6 +29,7 @@ def build_diagram_from_dag(
     label_overrides: Mapping[str, str] | None = None,
     sub_overrides: Mapping[str, str] | None = None,
     lanes: Mapping[str, Mapping] | None = None,
+    theme: "str | object" = "light",
 ) -> Diagram:
     """Build a Diagram from a parsed DAG.
 
@@ -56,7 +57,7 @@ def build_diagram_from_dag(
     positions = _layout(rules, levels, spine, column_spacing, branch_spacing)
     paths = _enumerate_paths(rules, deps, incoming)
 
-    d = Diagram(legend_loc=legend_loc)
+    d = Diagram(legend_loc=legend_loc, theme=theme)
     for r in rules:
         x, y = positions[r["name"]]
         label = label_overrides.get(r["name"], r["name"].replace("_", " "))

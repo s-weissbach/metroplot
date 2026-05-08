@@ -104,6 +104,7 @@ def from_nextflow(
     column_spacing: float = 2.0,
     branch_spacing: float = 2.0,
     legend_loc: str | None = "upper right",
+    theme: str = "light",
 ) -> Diagram:
     """Parse a Nextflow pipeline directory and return a Diagram."""
     rules, deps = parse_pipeline(workflow_dir)
@@ -120,4 +121,5 @@ def from_nextflow(
         legend_loc=legend_loc,
         label_overrides=label_overrides, sub_overrides=sub_overrides,
         lanes=lanes,
+        theme=theme,
     )

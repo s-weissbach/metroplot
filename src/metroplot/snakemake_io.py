@@ -84,6 +84,7 @@ def from_snakemake(
     column_spacing: float = 2.0,
     branch_spacing: float = 2.0,
     legend_loc: str | None = "upper right",
+    theme: str = "light",
 ) -> Diagram:
     """Parse a Snakemake workflow directory and return a Diagram."""
     rules = [r for r in parse_workflow(workflow_dir) if r["name"] not in set(skip_rules)]
@@ -97,4 +98,5 @@ def from_snakemake(
         legend_loc=legend_loc,
         label_overrides=label_overrides, sub_overrides=sub_overrides,
         lanes=lanes,
+        theme=theme,
     )

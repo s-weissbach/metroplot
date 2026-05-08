@@ -7,7 +7,9 @@
 
 Subway-style pipeline diagrams for matplotlib. Define stations on a grid and lines that connect them; the renderer handles right-angle routing, parallel-track offsets where lines share segments, and station labels.
 
-![example](graphics/example.png)
+<p align="center">
+  <img src="graphics/example_animated.svg" alt="animated metroplot example" width="100%"/>
+</p>
 
 
 ## Install
@@ -119,6 +121,58 @@ Both parsers are best-effort regex-based and do not understand dynamic rules / c
 - **Line** — a colored route, owning one or more `routes` (lists of station names). Splits are implicit: two routes that share a station diverge there.
 - **Shared segments** — when multiple lines traverse the same `(a, b)` segment, they're auto-offset perpendicular to the segment so they render as parallel tracks.
 - **Bends** — non-collinear hops use an L-shape. Per-line `bend="hv"` (horizontal then vertical, default) or `"vh"`.
+
+## Themes
+
+Three built-in themes — all use a **transparent background** so diagrams embed cleanly into any document or slide:
+
+| Name | Use case |
+|---|---|
+| `"light"` (default) | Light documents, papers, light-mode web |
+| `"dark"` | Dark slides, dark-mode docs — coloured station rings + track glow |
+| `"minimal"` | Publications — thinner lines, no inner dots |
+
+```python
+d = Diagram(theme="dark")
+```
+
+A default colour palette is available for multi-line diagrams:
+
+```python
+from metroplot.themes import PALETTES
+
+RED, BLUE, TEAL, NAVY = PALETTES["default"]  # #e63946, #457b9d, #a8dadc, #1d3557
+
+d.line("RNA-seq",  RED,  routes1)
+d.line("ChIP-seq", NAVY, routes2)
+```
+
+Add your own theme:
+
+```python
+from metroplot.themes import Theme, THEMES
+
+THEMES["myteam"] = Theme(
+    name="myteam",
+    label_color="#2a2a2a",
+    sub_color="#666666",
+    palette=["#e63946", "#457b9d", "#a8dadc", "#1d3557"],
+)
+```
+
+### Animated SVG
+
+Pass `animate=True` to `save_svg` to inject flowing-dash animation (data moving through the pipeline):
+
+```python
+d.save_svg("pipeline.svg", animate=True)
+```
+
+Or from the CLI:
+
+```sh
+metroplot nextflow path/to/workflow --theme dark --animate -o pipeline.svg
+```
 
 ## Tuning
 

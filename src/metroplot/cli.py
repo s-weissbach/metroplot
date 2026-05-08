@@ -36,6 +36,11 @@ def _add_common_args(p: argparse.ArgumentParser) -> None:
                    metavar="FLOAT")
     p.add_argument("--no-legend", action="store_true",
                    help="omit the legend")
+    p.add_argument("--theme", default="light",
+                   help='visual theme: "light" (default), "dark", "paper", or a custom '
+                        'name registered in metroplot.themes.THEMES')
+    p.add_argument("--animate", action="store_true",
+                   help="inject flowing-dash animation (SVG output only)")
     p.add_argument("--dpi", type=int, default=150)
     p.add_argument("--figsize", nargs=2, type=float, default=[15, 5],
                    metavar=("W", "H"))
@@ -55,12 +60,25 @@ def cmd_snakemake(args: argparse.Namespace) -> None:
         column_spacing=args.column_spacing,
         branch_spacing=args.branch_spacing,
         legend_loc=None if args.no_legend else "upper right",
+        theme=args.theme,
     )
-    fig, ax = plt.subplots(figsize=args.figsize)
-    d.render(ax)
-    plt.tight_layout()
+    _save(d, args)
+
+
+def _save(d, args: argparse.Namespace) -> None:
     out = Path(args.output)
-    plt.savefig(out, dpi=args.dpi, bbox_inches="tight")
+    animate = getattr(args, "animate", False)
+    if out.suffix.lower() == ".svg" or animate:
+        if out.suffix.lower() != ".svg":
+            out = out.with_suffix(".svg")
+            print(f"note: --animate requires SVG output; writing to {out}")
+        d.save_svg(out, dpi=args.dpi, animate=animate)
+    else:
+        fig, ax = plt.subplots(figsize=args.figsize)
+        d.render(ax)
+        plt.tight_layout()
+        plt.savefig(out, dpi=args.dpi, bbox_inches="tight")
+        plt.close(fig)
     print(f"wrote {out}")
 
 
@@ -78,13 +96,9 @@ def cmd_nextflow(args: argparse.Namespace) -> None:
         column_spacing=args.column_spacing,
         branch_spacing=args.branch_spacing,
         legend_loc=None if args.no_legend else "upper right",
+        theme=args.theme,
     )
-    fig, ax = plt.subplots(figsize=args.figsize)
-    d.render(ax)
-    plt.tight_layout()
-    out = Path(args.output)
-    plt.savefig(out, dpi=args.dpi, bbox_inches="tight")
-    print(f"wrote {out}")
+    _save(d, args)
 
 
 def main(argv: list[str] | None = None) -> None:
