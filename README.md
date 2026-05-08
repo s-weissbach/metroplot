@@ -33,31 +33,59 @@ Only hard dependency is `matplotlib`.
 ```python
 import matplotlib.pyplot as plt
 from metroplot import Diagram
+from metroplot.themes import PALETTES
 
-NAVY, SALMON = "#1f2a44", "#e07a6b"
+RED, BLUE, TEAL, NAVY = PALETTES["default"]
 
-d = Diagram()
-(d.station("sra",    0.0,  0.0, "SRA tool", "DATA DOWNLOAD", "below")
-  .station("fastqc", 2.0,  0.0, "fastqc",   "QUALITY CONTROL")
-  .station("star",   6.0,  0.0, "STAR",     "ALIGNMENT")
-  .station("rmats",  9.0,  0.0, "rMATS",    "ALT SPLICING")
-  .station("bam",    8.0, -1.5, "bamCoverage", "COVERAGE", "below")
-  .station("fc",     6.0, -2.5, "featureCounts", "QUANTIFICATION", "below"))
+d = Diagram(theme="light", legend_loc="lower right",
+            line_width=5.5, station_radius=0.20, label_font=10, sub_font=7)
 
-# A line is a list of routes. Multiple routes that share a station encode a split.
-d.line("splicing", SALMON, [
-    ["sra", "fastqc", "star", "rmats"],
-    ["rmats", "bam"],          # branch off rmats
+# Pre-processing
+d.station("fastqc_raw",  0,    0,    "FastQC",        "RAW QC",       "above")
+d.station("trim",        3.5,  0,    "Trim Galore",   "TRIMMING",     "above")
+d.station("fastqc_trim", 7,    0,    "FastQC",        "TRIM QC",      "above")
+
+# Genome alignment (STAR / HISAT2 fork)
+d.station("star",        10.5, 1.5,  "STAR",          "ALIGNMENT",    "above")
+d.station("hisat2",      10.5, -1.5, "HISAT2",        "ALIGNMENT",    "below")
+d.station("umitools",    14,   0,    "UMI-tools",     "DEDUP",        "above")
+d.station("fcounts",     17.5, 0,    "featureCounts", "QUANTIFY",     "above")
+
+# Alt splicing branch from STAR
+d.station("rmats",       14,   3.5,  "rMATS",         "ALT SPLICING", "above")
+d.station("gseapy",      17.5, 3.5,  "GSEApy",        "ENRICHMENT",   "above")
+
+# Post-processing
+d.station("samtools",    21,   0,    "SAMtools",      "BAM PROCESS",  "above")
+d.station("bigtwig",     24.5, 0,    "bigWig",        "TRACKS",       "above")
+
+# QC & Reporting fan-out
+d.station("rseqc",       28,   1.5,  "RSeQC",         "RNA QC",       "above")
+d.station("bedtools",    28,   -1.5, "BEDTools",      "COVERAGE",     "below")
+d.station("multiqc",     31.5, 0,    "MultiQC",       "REPORT",       "above")
+
+# Lines — multiple routes on one line encode branches
+d.line("STAR + featureCounts", NAVY, [
+    ["fastqc_raw", "trim", "fastqc_trim", "star",
+     "umitools", "fcounts", "samtools", "bigtwig", "rseqc", "multiqc"],
+    ["bigtwig", "bedtools"],
+    ["star", "rmats", "gseapy"],
 ])
-d.line("quant", NAVY, [
-    ["sra", "fastqc", "star", "fc"],
+d.line("HISAT2", TEAL, [
+    ["fastqc_raw", "trim", "fastqc_trim", "hisat2", "umitools"],
 ])
 
-d.render()
-plt.savefig("pipeline.png", dpi=150, bbox_inches="tight")
+# Section grouping boxes
+d.section("Pre-processing",   stations=["fastqc_raw", "trim", "fastqc_trim"], padding=0.85)
+d.section("Genome alignment", stations=["star", "hisat2", "umitools", "fcounts"], padding=0.85)
+d.section("Alt splicing",     stations=["rmats", "gseapy"],                     padding=0.75)
+d.section("Post-processing",  stations=["samtools", "bigtwig"],                 padding=0.75)
+d.section("QC & Reporting",   stations=["rseqc", "bedtools", "multiqc"],        padding=0.85)
+
+fig, ax = plt.subplots(figsize=(22, 7))
+d.save_svg("pipeline.svg", ax=ax, animate=True)   # animated SVG
+plt.close(fig)
 ```
-
-Run [examples/example.py](examples/example.py) to regenerate the figure at the top.
 
 ## CLI
 

@@ -243,8 +243,7 @@ class Diagram:
         if created_fig:
             fig, ax = plt.subplots(figsize=(13, 5))
         self.render(ax)
-        if created_fig:
-            plt.tight_layout()
+        plt.tight_layout()
         ax.get_figure().savefig(out, format="svg", dpi=dpi,
                                 bbox_inches=bbox_inches)
         if created_fig:
@@ -319,13 +318,15 @@ class Diagram:
 
         edge_lw = th.station_edge_width * (1.25 if is_interchange else 1.0)
 
-        ax.add_patch(Circle(
+        outer = Circle(
             (s.x, cy), radius,
             facecolor=th.station_fill,
             edgecolor=edge_color,
             linewidth=edge_lw,
             zorder=10,
-        ))
+        )
+        outer.set_gid(f"metro-station-{s.name}")
+        ax.add_patch(outer)
 
         # Inner coloured dot for themes that use it (light, paper)
         if th.station_dot and len(slines) == 1:
