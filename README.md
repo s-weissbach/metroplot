@@ -31,13 +31,16 @@ Only hard dependency is `matplotlib`.
 ## Usage
 
 ```python
-import matplotlib.pyplot as plt
+import dataclasses, matplotlib.pyplot as plt
 from metroplot import Diagram
-from metroplot.themes import PALETTES
+from metroplot.themes import LIGHT, PALETTES, LOGO_ORANGE
 
-RED, BLUE, TEAL, NAVY = PALETTES["default"]
+_, BLUE, TEAL, NAVY = PALETTES["default"]
 
-d = Diagram(theme="light", legend_loc="lower right",
+# Warm off-white background; transparent ("none") works too
+theme = dataclasses.replace(LIGHT, background="#f5f6f8")
+
+d = Diagram(theme=theme, legend_loc="lower right",
             line_width=5.5, station_radius=0.20, label_font=10, sub_font=7)
 
 # Pre-processing
@@ -65,7 +68,7 @@ d.station("bedtools",    28,   -1.5, "BEDTools",      "COVERAGE",     "below")
 d.station("multiqc",     31.5, 0,    "MultiQC",       "REPORT",       "above")
 
 # Lines — multiple routes on one line encode branches
-d.line("STAR + featureCounts", NAVY, [
+d.line("STAR + featureCounts", LOGO_ORANGE, [
     ["fastqc_raw", "trim", "fastqc_trim", "star",
      "umitools", "fcounts", "samtools", "bigtwig", "rseqc", "multiqc"],
     ["bigtwig", "bedtools"],

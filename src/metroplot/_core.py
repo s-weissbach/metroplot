@@ -289,21 +289,22 @@ class Diagram:
         )
         ax.add_patch(patch)
 
-        # Label near top-center inside the box
+        # Label above the box, centred
         cx = lx + w / 2
-        ax.text(cx, ly + h - r - 0.05, spec.label,
-                ha="center", va="top",
+        top = ly + h  # outer top edge of the rendered box
+        ax.text(cx, top + 0.10, spec.label,
+                ha="center", va="bottom",
                 fontsize=th.section_label_font,
                 color=th.section_label_color,
                 fontweight="bold",
-                zorder=2)
+                zorder=12)
         if spec.sub:
-            ax.text(cx, ly + h - r - 0.05 - th.section_label_font * 0.018,
+            ax.text(cx, top + 0.10 + th.section_label_font * 0.016,
                     spec.sub,
-                    ha="center", va="top",
-                    fontsize=max(th.section_label_font - 1, 6),
+                    ha="center", va="bottom",
+                    fontsize=max(th.section_label_font - 2, 6),
                     color=th.section_label_color,
-                    zorder=2)
+                    zorder=12)
 
     def _draw_station(self, ax, s: Station, cy: float, radius: float,
                       slines: list[int], th: Theme) -> None:

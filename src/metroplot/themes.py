@@ -29,7 +29,12 @@ from dataclasses import dataclass, field
 
 PALETTES: dict[str, list[str]] = {
     "default": ["#e63946", "#457b9d", "#a8dadc", "#1d3557"],
+    # metroplot logo orange (coral) — use as a highlight or primary accent
+    "logo_orange": ["#e8614a", "#457b9d", "#a8dadc", "#1d3557"],
 }
+
+# Logo orange as a standalone constant
+LOGO_ORANGE = "#e8614a"
 
 
 # ---------------------------------------------------------------------------
@@ -109,8 +114,8 @@ LIGHT = Theme(
     section_fill="#f4f7fa",
     section_edge="#d0dce8",
     section_edge_width=0.8,
-    section_label_color="#8aaabf",
-    section_label_font=9,
+    section_label_color="#4a6a85",
+    section_label_font=11,
     section_corner_radius=0.40,
     palette=list(PALETTES["default"]),
 )
