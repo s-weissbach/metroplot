@@ -1,4 +1,12 @@
-"""Generate graphics/example_animated.svg for the README."""
+"""Generate graphics/example_animated.svg for the README.
+
+An elaborate RNA-seq workflow showcasing:
+  - Shared pre-processing trunk
+  - STAR / HISAT2 alignment fork
+  - Three independent downstream branches (splicing, variants, coverage)
+  - GSEA sub-branch inside the main DE line
+  - Seven section grouping boxes
+"""
 import sys, dataclasses
 sys.path.insert(0, "src")
 
@@ -10,64 +18,82 @@ from metroplot import Diagram
 from metroplot.themes import LIGHT, PALETTES, LOGO_ORANGE
 
 _, BLUE, TEAL, NAVY = PALETTES["default"]
-ORANGE = LOGO_ORANGE   # #e8614a — matches the logo
+ORANGE = LOGO_ORANGE
 
-# Custom theme: same as light but with a warm off-white background
 theme = dataclasses.replace(LIGHT, background="#f5f6f8")
 
 d = Diagram(theme=theme, legend_loc="lower right",
-            line_width=5.5, station_radius=0.20, label_font=10, sub_font=7)
+            line_width=5.5, station_radius=0.21, label_font=9, sub_font=7)
 
-# ── Pre-processing ────────────────────────────────────────────────────────────
-d.station("fastqc_raw",  0,    0,     "FastQC",        "RAW QC",        "above")
-d.station("trim",        3.5,  0,     "Trim Galore",   "TRIMMING",      "above")
-d.station("fastqc_trim", 7,    0,     "FastQC",        "TRIM QC",       "above")
+# ── Pre-processing (shared trunk) ─────────────────────────────────────────────
+d.station("fastq",        0,   0,   "FASTQ",           "RAW READS",       "above")
+d.station("fastqc_raw",   3,   0,   "FastQC",          "RAW QC",          "above")
+d.station("trim",         6,   0,   "Trim Galore",     "TRIMMING",        "above")
+d.station("fastqc_trim",  9,   0,   "FastQC",          "TRIM QC",         "above")
 
-# ── Genome alignment ──────────────────────────────────────────────────────────
-d.station("star",        10.5, 1.5,   "STAR",          "ALIGNMENT",     "above")
-d.station("hisat2",      10.5, -1.5,  "HISAT2",        "ALIGNMENT",     "below")
-d.station("umitools",    14,   0,     "UMI-tools",     "DEDUP",         "above")
-d.station("fcounts",     17.5, 0,     "featureCounts", "QUANTIFY",      "above")
+# ── Alignment fork ────────────────────────────────────────────────────────────
+d.station("star",        12,   2,   "STAR",            "ALIGNMENT",       "above")
+d.station("hisat2",      12,  -2,   "HISAT2",          "ALIGNMENT",       "below")
+d.station("umitools",    15,   0,   "UMI-tools",       "DEDUPLICATION",   "above")
 
-# ── Alt splicing branch from STAR (separate line, different colour) ───────────
-d.station("rmats",       14,   3.5,   "rMATS",         "ALT SPLICING",  "above")
-d.station("gseapy",      17.5, 3.5,   "GSEApy",        "ENRICHMENT",    "above")
+# ── Alt Splicing branch (TEAL, off STAR) ──────────────────────────────────────
+d.station("rmats",       15,   5,   "rMATS",           "ALT SPLICING",    "above")
+d.station("maser",       18,   5,   "MASER",           "SPLICING VIZ",    "above")
 
-# ── Post-processing ───────────────────────────────────────────────────────────
-d.station("samtools",    21,   0,     "SAMtools",      "BAM PROCESS",   "above")
-d.station("bigtwig",     24.5, 0,     "bigWig",        "TRACKS",        "above")
+# ── Variant Calling branch (NAVY, off STAR) ───────────────────────────────────
+d.station("gatk_split",  15,   3,   "GATK SplitN",     "CIGAR SPLIT",     "above")
+d.station("haplotype",   18,   3,   "HaplotypeCaller", "VARIANT CALL",    "above")
+d.station("snpeff",      21,   3,   "SnpEff",          "ANNOTATION",      "above")
 
-# ── QC & Reporting ────────────────────────────────────────────────────────────
-d.station("rseqc",       28,   1.5,   "RSeQC",         "RNA QC",        "above")
-d.station("bedtools",    28,   -1.5,  "BEDTools",      "COVERAGE",      "below")
-d.station("multiqc",     31.5, 0,     "MultiQC",       "REPORT",        "above")
+# ── Quantification & Differential Expression (ORANGE) ─────────────────────────
+d.station("fcounts",     18,   0,   "featureCounts",   "QUANTIFY",        "above")
+d.station("deseq2",      21,   0,   "DESeq2",          "DIFF EXPR",       "above")
+d.station("gsea",        24,  -2,   "fgsea",           "GENE SET ENRICH", "below")
+d.station("clustprof",   24,   0,   "clusterProfiler", "PATHWAY ENRICH",  "above")
+
+# ── Coverage & Genome Tracks (BLUE, off HISAT2) ───────────────────────────────
+d.station("samtools",    18,  -4,   "SAMtools",        "BAM SORT/INDEX",  "below")
+d.station("bigtwig",     21,  -4,   "bigWig",          "COVERAGE TRACKS", "below")
+d.station("deeptools",   24,  -4,   "deepTools",       "PEAK ANALYSIS",   "below")
+
+# ── Report (all lines converge) ───────────────────────────────────────────────
+d.station("multiqc",     27,   0,   "MultiQC",         "QC REPORT",       "above")
 
 # ── Lines ─────────────────────────────────────────────────────────────────────
-# Main STAR pipeline — bedtools is on the main track, no branch
-d.line("STAR + featureCounts", ORANGE, [
-    ["fastqc_raw", "trim", "fastqc_trim", "star",
-     "umitools", "fcounts", "samtools", "bigtwig", "bedtools", "multiqc"],
+# Main Bulk RNA-seq line — has a GSEA sub-branch off DESeq2
+d.line("Bulk RNA-seq", ORANGE, [
+    ["fastq", "fastqc_raw", "trim", "fastqc_trim", "star",
+     "umitools", "fcounts", "deseq2", "clustprof", "multiqc"],
+    ["deseq2", "gsea"],
 ])
 
-# Alt splicing is a separate line with its own colour, branching from STAR
-d.line("Alt splicing", TEAL, [
-    ["star", "rmats", "gseapy"],
+# Alt Splicing — separate line with its own colour, terminates at MASER
+d.line("Alt Splicing", TEAL, [
+    ["star", "rmats", "maser"],
 ])
 
-# HISAT2 shares the trunk and post-processing, ending at RSeQC then MultiQC
-d.line("HISAT2", NAVY, [
-    ["fastqc_raw", "trim", "fastqc_trim", "hisat2",
-     "umitools", "fcounts", "samtools", "bigtwig", "rseqc", "multiqc"],
+# RNA Variant Calling — from STAR through GATK to MultiQC
+d.line("RNA Variants", NAVY, [
+    ["star", "gatk_split", "haplotype", "snpeff", "multiqc"],
 ])
 
-# ── Sections ──────────────────────────────────────────────────────────────────
-d.section("Pre-processing",   stations=["fastqc_raw", "trim", "fastqc_trim"], padding=0.85)
-d.section("Genome alignment", stations=["star", "hisat2", "umitools", "fcounts"], padding=0.85)
-d.section("Alt splicing",     stations=["rmats", "gseapy"],                     padding=0.75)
-d.section("Post-processing",  stations=["samtools", "bigtwig"],                 padding=0.75)
-d.section("QC & Reporting",   stations=["rseqc", "bedtools", "multiqc"],        padding=0.85)
+# QC & Genome Tracks — HISAT2 path through coverage tools to MultiQC
+d.line("QC Tracks", BLUE, [
+    ["fastq", "fastqc_raw", "trim", "fastqc_trim", "hisat2",
+     "umitools", "samtools", "bigtwig", "deeptools", "multiqc"],
+])
 
-fig, ax = plt.subplots(figsize=(22, 8))
+# ── Section grouping boxes ────────────────────────────────────────────────────
+d.section("Pre-processing",  stations=["fastq", "fastqc_raw", "trim", "fastqc_trim"], padding=0.9)
+d.section("Alignment",       stations=["star", "hisat2", "umitools"],                 padding=0.9)
+d.section("Alt Splicing",    stations=["rmats", "maser"],                             padding=0.75)
+d.section("Variant Calling", stations=["gatk_split", "haplotype", "snpeff"],         padding=0.75)
+d.section("Quant & DE",      stations=["fcounts", "deseq2", "gsea", "clustprof"],    padding=0.8)
+d.section("Coverage Tracks", stations=["samtools", "bigtwig", "deeptools"],          padding=0.75,
+          label_pos="bottom-middle")
+d.section("Report",          stations=["multiqc"],                                    padding=0.7)
+
+fig, ax = plt.subplots(figsize=(24, 10))
 d.save_svg("graphics/example_animated.svg", ax=ax, animate=True)
 plt.close(fig)
 print("wrote graphics/example_animated.svg")
