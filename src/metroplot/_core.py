@@ -59,7 +59,7 @@ class _SectionSpec:
 
 @dataclass
 class Diagram:
-    track_spacing: float = 0.13
+    track_spacing: float = 0.20
     station_radius: float = 0.22
     station_linewidth: float = 2.5
     line_width: float = 6.0
