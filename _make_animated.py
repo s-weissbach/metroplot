@@ -29,7 +29,7 @@ d.station("hisat2",      10.5, -1.5,  "HISAT2",        "ALIGNMENT",     "below")
 d.station("umitools",    14,   0,     "UMI-tools",     "DEDUP",         "above")
 d.station("fcounts",     17.5, 0,     "featureCounts", "QUANTIFY",      "above")
 
-# ── Alt splicing branch from STAR ─────────────────────────────────────────────
+# ── Alt splicing branch from STAR (separate line, different colour) ───────────
 d.station("rmats",       14,   3.5,   "rMATS",         "ALT SPLICING",  "above")
 d.station("gseapy",      17.5, 3.5,   "GSEApy",        "ENRICHMENT",    "above")
 
@@ -43,14 +43,21 @@ d.station("bedtools",    28,   -1.5,  "BEDTools",      "COVERAGE",      "below")
 d.station("multiqc",     31.5, 0,     "MultiQC",       "REPORT",        "above")
 
 # ── Lines ─────────────────────────────────────────────────────────────────────
+# Main STAR pipeline — bedtools is on the main track, no branch
 d.line("STAR + featureCounts", ORANGE, [
     ["fastqc_raw", "trim", "fastqc_trim", "star",
-     "umitools", "fcounts", "samtools", "bigtwig", "rseqc", "multiqc"],
-    ["bigtwig", "bedtools"],
+     "umitools", "fcounts", "samtools", "bigtwig", "bedtools", "multiqc"],
+])
+
+# Alt splicing is a separate line with its own colour, branching from STAR
+d.line("Alt splicing", TEAL, [
     ["star", "rmats", "gseapy"],
 ])
+
+# HISAT2 shares the trunk and post-processing, ending at RSeQC then MultiQC
 d.line("HISAT2", NAVY, [
-    ["fastqc_raw", "trim", "fastqc_trim", "hisat2", "umitools"],
+    ["fastqc_raw", "trim", "fastqc_trim", "hisat2",
+     "umitools", "fcounts", "samtools", "bigtwig", "rseqc", "multiqc"],
 ])
 
 # ── Sections ──────────────────────────────────────────────────────────────────
