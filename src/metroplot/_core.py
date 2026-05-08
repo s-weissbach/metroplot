@@ -17,7 +17,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.path import Path as MPath
-from matplotlib.patches import Circle, PathPatch
+from matplotlib.patches import Circle, FancyBboxPatch, PathPatch
 
 from metroplot.themes import Theme, get_theme
 
@@ -43,6 +43,19 @@ class Line:
 
 
 @dataclass
+class _SectionSpec:
+    """Internal spec; resolved to pixel bounds during render()."""
+    label: str
+    sub: str
+    station_names: list | None  # if set, bounds computed from these stations
+    x: float | None             # manual lower-left x (when station_names is None)
+    y: float | None
+    width: float | None
+    height: float | None
+    padding: float
+
+
+@dataclass
 class Diagram:
     track_spacing: float = 0.13
     station_radius: float = 0.22
@@ -59,11 +72,44 @@ class Diagram:
     theme: str | Theme = "light"
     stations: dict = field(default_factory=dict)
     lines: list = field(default_factory=list)
+    _sections: list = field(default_factory=list, repr=False)
 
     def station(self, name, x, y, label="", sub="", label_pos="above",
                 label_dx=0.0, label_dy=0.0):
         self.stations[name] = Station(name, x, y, label, sub, label_pos,
                                       label_dx, label_dy)
+        return self
+
+    def section(self, label, *, stations=None, x=None, y=None,
+                width=None, height=None, sub="", padding=0.65):
+        """Add a labelled grouping box around a set of stations.
+
+        Parameters
+        ----------
+        label:
+            Text shown inside the top of the box.
+        stations:
+            List of station names whose coordinates define the bounding box.
+            Bounds are resolved at render time so station_dy offsets are
+            included.  Either ``stations`` or all of ``x/y/width/height``
+            must be provided.
+        x, y, width, height:
+            Manual lower-left corner and dimensions (diagram coordinates).
+        sub:
+            Optional smaller label drawn below the main label.
+        padding:
+            Extra space added around station positions when using auto bounds.
+        """
+        if stations is None and any(v is None for v in (x, y, width, height)):
+            raise ValueError(
+                "section() requires either stations= or all of x, y, width, height"
+            )
+        self._sections.append(_SectionSpec(
+            label=label, sub=sub,
+            station_names=list(stations) if stations is not None else None,
+            x=x, y=y, width=width, height=height,
+            padding=padding,
+        ))
         return self
 
     def line(self, name, color, routes, bend="hv"):
@@ -131,6 +177,10 @@ class Diagram:
         radius = max(self.station_radius, math.sqrt(2) * max_offset * 1.05)
 
         self._validate_layout(station_dy, radius)
+
+        # --- Draw section boxes (behind everything else) ----------------
+        for spec in self._sections:
+            self._draw_section(ax, spec, station_dy, th)
 
         # --- Draw tracks ------------------------------------------------
         seg_counters: dict[int, int] = defaultdict(int)
@@ -209,6 +259,52 @@ class Diagram:
     # ------------------------------------------------------------------
     # Internal drawing helpers
     # ------------------------------------------------------------------
+
+    def _draw_section(self, ax, spec: _SectionSpec,
+                      station_dy: dict, th: Theme) -> None:
+        if spec.station_names is not None:
+            found = [s for s in spec.station_names if s in self.stations]
+            if not found:
+                return
+            xs = [self.stations[s].x for s in found]
+            ys = [self.stations[s].y + station_dy.get(s, 0.0) for s in found]
+            lx = min(xs) - spec.padding
+            ly = min(ys) - spec.padding
+            w  = max(xs) - min(xs) + 2 * spec.padding
+            h  = max(ys) - min(ys) + 2 * spec.padding
+        else:
+            lx, ly, w, h = spec.x, spec.y, spec.width, spec.height
+
+        r = th.section_corner_radius
+        # FancyBboxPatch with boxstyle="round,pad=r" expands the rectangle by r
+        # on each side, so we shrink the inner rect to compensate.
+        patch = FancyBboxPatch(
+            (lx + r, ly + r),
+            max(w - 2 * r, 1e-3),
+            max(h - 2 * r, 1e-3),
+            boxstyle=f"round,pad={r}",
+            facecolor=th.section_fill,
+            edgecolor=th.section_edge,
+            linewidth=th.section_edge_width,
+            zorder=1,
+        )
+        ax.add_patch(patch)
+
+        # Label near top-center inside the box
+        cx = lx + w / 2
+        ax.text(cx, ly + h - r - 0.05, spec.label,
+                ha="center", va="top",
+                fontsize=th.section_label_font,
+                color=th.section_label_color,
+                fontweight="bold",
+                zorder=2)
+        if spec.sub:
+            ax.text(cx, ly + h - r - 0.05 - th.section_label_font * 0.018,
+                    spec.sub,
+                    ha="center", va="top",
+                    fontsize=max(th.section_label_font - 1, 6),
+                    color=th.section_label_color,
+                    zorder=2)
 
     def _draw_station(self, ax, s: Station, cy: float, radius: float,
                       slines: list[int], th: Theme) -> None:

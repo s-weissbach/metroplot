@@ -77,6 +77,14 @@ class Theme:
     glow_alpha: float = 0.15
     glow_width_multiplier: float = 3.2
 
+    # Section grouping boxes
+    section_fill: str = "#f0f4f8"
+    section_edge: str = "#cccccc"
+    section_edge_width: float = 1.2
+    section_label_color: str = "#888888"
+    section_label_font: int = 9
+    section_corner_radius: float = 0.35
+
     # Colour palette for multi-line diagrams
     palette: list = field(default_factory=lambda: list(PALETTES["default"]))
 
@@ -98,6 +106,12 @@ LIGHT = Theme(
     label_color="#1d3557",
     sub_color="#457b9d",
     glow=False,
+    section_fill="#f0f4f8",
+    section_edge="#c8d8e8",
+    section_edge_width=1.2,
+    section_label_color="#7a9ab5",
+    section_label_font=9,
+    section_corner_radius=0.35,
     palette=list(PALETTES["default"]),
 )
 
@@ -115,6 +129,12 @@ DARK = Theme(
     glow=True,
     glow_alpha=0.20,
     glow_width_multiplier=3.2,
+    section_fill="#1a2a3a",
+    section_edge="#2a4a6a",
+    section_edge_width=1.0,
+    section_label_color="#6a9ab5",
+    section_label_font=9,
+    section_corner_radius=0.35,
     palette=list(PALETTES["default"]),
 )
 
@@ -130,6 +150,12 @@ MINIMAL = Theme(
     label_color="#222222",
     sub_color="#777777",
     glow=False,
+    section_fill="#f5f5f5",
+    section_edge="#dddddd",
+    section_edge_width=0.8,
+    section_label_color="#aaaaaa",
+    section_label_font=8,
+    section_corner_radius=0.25,
     palette=list(PALETTES["default"]),
 )
 
