@@ -262,8 +262,9 @@ class Diagram:
             plt.close(ax.get_figure())
 
         if animate:
-            from metroplot._svg_animate import inject_flow_animation
-            inject_flow_animation(out, [ln.color for ln in self.lines])
+            from metroplot._svg_animate import inject_cart_animation
+            line_routes = [(ln.color, list(ln.routes[0])) for ln in self.lines if ln.routes]
+            inject_cart_animation(out, line_routes)
 
         return out
 
