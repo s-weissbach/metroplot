@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from pathlib import Path
 from typing import Mapping
 
 from metroplot._core import Diagram
@@ -42,13 +43,15 @@ _SKIP_RE = re.compile(r"^\s*(style|classDef|class|linkStyle|subgraph|end)\b", re
 # Splits on --> or --- with an optional |edge-label| in between
 _EDGE_SEP_RE = re.compile(r"\s*(?:-->|---)\s*(?:\|[^|]*\|\s*)?")
 
-# Matches a node token: ID followed by optional bracket label
-# Groups: (1) id, (2) double-paren label, (3) other bracket label
+# Matches a node token: ID followed by optional bracket label.
+# Groups: (1) id, (2) ((circle)) label, (3) ([stadium]) label,
+#         (4) [rect] / (round) / {diamond} / >asym] label
 _NODE_RE = re.compile(
     r"([A-Za-z0-9_]+)"
     r"(?:\s*"
-    r"(?:\(\(([^)]+)\)\))"          # ((circle))
-    r"|(?:[\[\({>]([^\]\)\}]+)[\]\)}])"  # [rect] (round) {diamond} >asym]
+    r"(?:\(\(([^)]+)\)\))"              # ((circle))
+    r"|(?:\(\[([^\]]+)\]\))"            # ([stadium]) — used by Nextflow
+    r"|(?:[\[\({>]([^\]\)\}]+)[\]\)}])" # [rect] (round) {diamond} >asym]
     r")?"
 )
 
@@ -158,6 +161,25 @@ def from_mermaid(
     )
 
 
+def from_mermaid_file(
+    path: str | Path,
+    **kwargs,
+) -> "Diagram":
+    """Read a ``.mmd`` file and return a metroplot Diagram.
+
+    Convenience wrapper around :func:`from_mermaid` for workflows that
+    produce a Mermaid file directly:
+
+    - **Nextflow 22.04+**: ``nextflow run pipeline.nf -with-dag dag.mmd``
+    - **Snakemake 9.0+**: ``snakemake --dag > dag.mmd``
+    - **Older Snakemake**: ``snakemake --dag | dot2mermaid > dag.mmd``
+      (requires ``pip install dot2mermaid``)
+
+    All keyword arguments are forwarded to :func:`from_mermaid`.
+    """
+    return from_mermaid(Path(path).read_text(), **kwargs)
+
+
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _split_amp(segment: str) -> list[str]:
@@ -171,7 +193,7 @@ def _parse_node(token: str, labels: dict[str, str]) -> str:
     if not m:
         return ""
     node_id = m.group(1)
-    raw_label = m.group(2) or m.group(3)  # double-paren or other bracket
+    raw_label = m.group(2) or m.group(3) or m.group(4)
     if raw_label is not None:
         labels[node_id] = raw_label.strip()
     elif node_id not in labels:
