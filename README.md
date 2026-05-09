@@ -4,6 +4,7 @@
 [![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![code style: matplotlib](https://img.shields.io/badge/built%20on-matplotlib-11557c.svg)](https://matplotlib.org/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/metroplot.svg)](https://pypi.org/project/metroplot/)
 
 Subway-style pipeline diagrams for matplotlib. Define stations on a grid and lines that connect them; the renderer handles right-angle routing, parallel-track offsets where lines share segments, and station labels.
 
@@ -36,57 +37,71 @@ from metroplot import Diagram
 from metroplot.themes import LIGHT, PALETTES, LOGO_ORANGE
 
 _, BLUE, TEAL, NAVY = PALETTES["default"]
+ORANGE = LOGO_ORANGE
 
-# Warm off-white background; transparent ("none") works too
 theme = dataclasses.replace(LIGHT, background="#f5f6f8")
 
 d = Diagram(theme=theme, legend_loc="lower right",
-            line_width=5.5, station_radius=0.20, label_font=10, sub_font=7)
+            line_width=5.5, station_radius=0.45, label_font=9, sub_font=7)
 
-# Pre-processing
-d.station("fastqc_raw",  0,    0,    "FastQC",        "RAW QC",       "above")
-d.station("trim",        3.5,  0,    "Trim Galore",   "TRIMMING",     "above")
-d.station("fastqc_trim", 7,    0,    "FastQC",        "TRIM QC",      "above")
+# Pre-processing (shared trunk, going right)
+d.station("fastq",       0,  0,  "FASTQ",           "RAW READS",      "above")
+d.station("fastqc_raw",  3,  0,  "FastQC",          "RAW QC",         "above")
+d.station("trim",        6,  0,  "Trim Galore",     "TRIMMING",       "above")
+d.station("fastqc_trim", 9,  0,  "FastQC",          "TRIM QC",        "above")
 
-# Genome alignment (STAR / HISAT2 fork)
-d.station("star",        10.5, 1.5,  "STAR",          "ALIGNMENT",    "above")
-d.station("hisat2",      10.5, -1.5, "HISAT2",        "ALIGNMENT",    "below")
-d.station("umitools",    14,   0,    "UMI-tools",     "DEDUP",        "above")
-d.station("fcounts",     17.5, 0,    "featureCounts", "QUANTIFY",     "above")
+# Alignment fork — the corner of the U
+d.station("star",       12,  1.5, "STAR",            "ALIGNMENT",      "right")
+d.station("hisat2",     12, -1.5, "HISAT2",          "ALIGNMENT",      "right")
 
-# Alt splicing branch from STAR
-d.station("rmats",       14,   3.5,  "rMATS",         "ALT SPLICING", "above")
-d.station("gseapy",      17.5, 3.5,  "GSEApy",        "ENRICHMENT",   "above")
+# Alt Splicing (returning left at y=6)
+d.station("rmats",       9,  6,  "rMATS",            "ALT SPLICING",   "above")
+d.station("maser",       6,  6,  "MASER",            "SPLICING VIZ",   "above")
 
-# Post-processing
-d.station("samtools",    21,   0,    "SAMtools",      "BAM PROCESS",  "above")
-d.station("bigtwig",     24.5, 0,    "bigWig",        "TRACKS",       "above")
+# Variant Calling (returning left at y=4)
+d.station("gatk_split",  9,  4,  "GATK SplitN",     "CIGAR SPLIT",    "above")
+d.station("haplotype",   6,  4,  "HaplotypeCaller",  "VARIANT CALL",   "above")
+d.station("snpeff",      3,  4,  "SnpEff",           "ANNOTATION",     "above")
 
-# QC & Reporting fan-out
-d.station("rseqc",       28,   1.5,  "RSeQC",         "RNA QC",       "above")
-d.station("bedtools",    28,   -1.5, "BEDTools",      "COVERAGE",     "below")
-d.station("multiqc",     31.5, 0,    "MultiQC",       "REPORT",       "above")
+# Quantification & DE (returning left at y=2)
+d.station("umitools",    9,  2,  "UMI-tools",        "DEDUPLICATION",  "above")
+d.station("fcounts",     6,  2,  "featureCounts",    "QUANTIFY",       "above")
+d.station("deseq2",      3,  2,  "DESeq2",           "DIFF EXPR",      "above")
+d.station("clustprof",   0,  2,  "clusterProfiler",  "PATHWAY ENRICH", "above")
 
-# Lines — multiple routes on one line encode branches
-d.line("STAR + featureCounts", LOGO_ORANGE, [
-    ["fastqc_raw", "trim", "fastqc_trim", "star",
-     "umitools", "fcounts", "samtools", "bigtwig", "rseqc", "multiqc"],
-    ["bigtwig", "bedtools"],
-    ["star", "rmats", "gseapy"],
+# Coverage Tracks (returning left at y=-2)
+d.station("samtools",    9, -2,  "SAMtools",         "BAM SORT/INDEX", "below")
+d.station("bigtwig",     6, -2,  "bigWig",           "COVERAGE",       "below")
+d.station("deeptools",   3, -2,  "deepTools",        "PEAK ANALYSIS",  "below")
+
+# Lines — every track runs the full journey from FASTQ
+d.line("Bulk RNA-seq", ORANGE, [
+    ["fastq", "fastqc_raw", "trim", "fastqc_trim", "star",
+     "umitools", "fcounts", "deseq2", "clustprof"],
 ])
-d.line("HISAT2", TEAL, [
-    ["fastqc_raw", "trim", "fastqc_trim", "hisat2", "umitools"],
+d.line("Alt Splicing", TEAL, [
+    ["fastq", "fastqc_raw", "trim", "fastqc_trim", "star", "rmats", "maser"],
+])
+d.line("RNA Variants", NAVY, [
+    ["fastq", "fastqc_raw", "trim", "fastqc_trim", "star",
+     "gatk_split", "haplotype", "snpeff"],
+])
+d.line("QC Tracks", BLUE, [
+    ["fastq", "fastqc_raw", "trim", "fastqc_trim", "hisat2",
+     "samtools", "bigtwig", "deeptools"],
 ])
 
 # Section grouping boxes
-d.section("Pre-processing",   stations=["fastqc_raw", "trim", "fastqc_trim"], padding=0.85)
-d.section("Genome alignment", stations=["star", "hisat2", "umitools", "fcounts"], padding=0.85)
-d.section("Alt splicing",     stations=["rmats", "gseapy"],                     padding=0.75)
-d.section("Post-processing",  stations=["samtools", "bigtwig"],                 padding=0.75)
-d.section("QC & Reporting",   stations=["rseqc", "bedtools", "multiqc"],        padding=0.85)
+d.section("Pre-processing",  stations=["fastq", "fastqc_raw", "trim", "fastqc_trim"], padding=0.9)
+d.section("Alignment",       stations=["star", "hisat2"],    padding=0.9, label_pos="right")
+d.section("Alt Splicing",    stations=["rmats", "maser"],    padding=0.75)
+d.section("Variant Calling", stations=["gatk_split", "haplotype", "snpeff"], padding=0.75)
+d.section("Quant & DE",      stations=["umitools", "fcounts", "deseq2", "clustprof"], padding=0.8)
+d.section("Coverage Tracks", stations=["samtools", "bigtwig", "deeptools"], padding=0.75,
+          label_pos="bottom-middle")
 
-fig, ax = plt.subplots(figsize=(22, 7))
-d.save_svg("pipeline.svg", ax=ax, animate=True)   # animated SVG
+fig, ax = plt.subplots(figsize=(16, 10))
+d.save_svg("pipeline.svg", ax=ax, animate=True)
 plt.close(fig)
 ```
 
@@ -116,12 +131,41 @@ metroplot snakemake path/to/workflow \
 
 ## Pipeline workflows
 
-metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Two formats are supported:
+metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Three formats are supported:
 
+- **Mermaid** — `from metroplot import from_mermaid` parses a `graph` or `flowchart` string directly. Useful for quick prototyping or when your pipeline is already described in Mermaid.
 - **Snakemake** — `from metroplot.snakemake_io import from_snakemake` parses every `Snakefile` / `*.smk` under a directory, matches each rule's `output:` paths to downstream `input:` paths to derive the DAG.
 - **Nextflow (DSL2)** — `from metroplot.nextflow_io import from_nextflow` parses every `*.nf` file, finds `process NAME { … }` blocks, and extracts edges by reading `workflow { … }` blocks for invocations like `STAR(TRIM.out)`.
 
-Both share the same downstream layout/Diagram-builder (`metroplot._pipeline_layout`): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
+All three share the same downstream layout/Diagram-builder (`metroplot._pipeline_layout`): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
+
+### Mermaid
+
+```python
+from metroplot import from_mermaid
+
+MERMAID = """
+flowchart LR
+    FASTQ[Raw Reads] --> QC[FastQC]
+    FASTQ            --> TRIM[Trim Galore]
+    TRIM             --> STAR[STAR] & HISAT2[HISAT2]
+    STAR & HISAT2    --> COUNTS[featureCounts]
+    COUNTS           --> DESEQ2[DESeq2]
+    HISAT2           --> BIGWIG[bigWig]
+"""
+
+d = from_mermaid(
+    MERMAID,
+    line_name="RNA-seq",
+    color="#e8614a",
+    sub_overrides={"DESEQ2": "DIFF EXPR", "BIGWIG": "COVERAGE"},
+)
+d.render()
+```
+
+Supported: `-->` / `---` edges, optional `|edge label|`, node labels in `[]` `()` `(())` `{}`, `&` for multiple sources/targets, chained arrows `A --> B --> C`, `%%` comments. Not supported: subgraphs, classDef/style directives.
+
+### Snakemake / Nextflow
 
 ```python
 from metroplot.snakemake_io import from_snakemake   # or: from metroplot.nextflow_io import from_nextflow
@@ -129,8 +173,8 @@ from metroplot.snakemake_io import from_snakemake   # or: from metroplot.nextflo
 d = from_snakemake(
     "path/to/workflow",
     line_name="My pipeline",
-    label_overrides={"run_method": "scanpy/Seurat"},     # snake_case rule name → display label
-    sub_overrides={"run_method": "ANNOTATION"},          # small uppercase line under each label
+    label_overrides={"run_method": "scanpy/Seurat"},
+    sub_overrides={"run_method": "ANNOTATION"},
     lanes={                                              # optional: split into multiple parallel lines
         "QC":   {"color": "#aaaaaa", "rules": ["FASTQC", "MULTIQC"]},
         "Main": {"color": "#1f2a44", "rules": ["FASTP", "STAR", "FEATURECOUNTS", "DESEQ2"]},
@@ -139,12 +183,19 @@ d = from_snakemake(
 d.render()
 ```
 
-End-to-end demos:
+**Mermaid** ([example_mermaid.py](examples/example_mermaid.py)):
 
-- Snakemake on a real cell-type annotation benchmarking workflow → [examples/example_snakemake.py](examples/example_snakemake.py) → [graphics/snakemake_example.png](graphics/snakemake_example.png)
-- Nextflow on an nf-core-style RNA-seq pipeline → [examples/example_nextflow.py](examples/example_nextflow.py) → [graphics/nextflow_example.png](graphics/nextflow_example.png)
+<p align="center"><img src="graphics/mermaid_example.png" alt="mermaid example" width="100%"/></p>
 
-Both parsers are best-effort regex-based and do not understand dynamic rules / checkpoint outputs (Snakemake) or subworkflow imports / channel operators like `map`, `branch`, `combine` (Nextflow). For anything they miss, override at the kwarg layer or pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
+**Snakemake** ([example_snakemake.py](examples/example_snakemake.py)):
+
+<p align="center"><img src="graphics/snakemake_example.png" alt="snakemake example" width="100%"/></p>
+
+**Nextflow** ([example_nextflow.py](examples/example_nextflow.py)):
+
+<p align="center"><img src="graphics/nextflow_example.png" alt="nextflow example" width="100%"/></p>
+
+Parsers are best-effort regex-based. For anything they miss, pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
 
 ## Concepts
 

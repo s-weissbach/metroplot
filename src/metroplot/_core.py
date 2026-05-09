@@ -86,7 +86,12 @@ class Diagram:
     def section(self, label, *, stations=None, x=None, y=None,
                 width=None, height=None, sub="", padding=0.65,
                 label_pos="top-middle", label_rotation=0.0):
-        """Add a labelled grouping box around a set of stations."""
+        """Add a labelled grouping box around a set of stations.
+
+        Provide either:
+        - ``stations=[...]`` to auto-compute bounds from named stations, or
+        - explicit ``x, y, width, height`` to place the box manually.
+        """
         if stations is None and any(v is None for v in (x, y, width, height)):
             raise ValueError(
                 "section() requires either stations= or all of x, y, width, height"
@@ -160,6 +165,14 @@ class Diagram:
         for spec in self._sections:
             self._draw_section(ax, spec, station_dy, th)
 
+        # --- Pre-compute bends; tally spread direction per station ------
+        # line_offset is applied in Y for horizontal segments, in X for
+        # vertical segments, and diagonally for L-bends.  For the
+        # interchange pill to orient correctly we vote per station:
+        #   HV bend source → y-spread (horizontal departure)
+        #   HV bend dest   → x-spread (vertical arrival)
+        #   VH bend source → x-spread (vertical departure)
+        #   VH bend dest   → y-spread (horizontal arrival)
         x_votes: dict[str, int] = defaultdict(int)
         y_votes: dict[str, int] = defaultdict(int)
         pre_bends: dict[tuple[int, int, int], str] = {}
@@ -180,11 +193,11 @@ class Diagram:
                                                 user_bend, station_dy, radius)
                                 if self.auto_bend else user_bend)
                         if bend == "hv":
-                            y_votes[a] += 1
-                            x_votes[b] += 1
+                            y_votes[a] += 1   # horizontal departure
+                            x_votes[b] += 1   # vertical arrival
                         else:
-                            x_votes[a] += 1
-                            y_votes[b] += 1
+                            x_votes[a] += 1   # vertical departure
+                            y_votes[b] += 1   # horizontal arrival
                     pre_bends[(li, ri, si)] = bend
 
         station_spread: dict[str, str] = {
@@ -192,6 +205,7 @@ class Diagram:
             for name in self.stations
         }
 
+        # --- Draw tracks ------------------------------------------------
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
                 for si, (a, b) in enumerate(zip(route[:-1], route[1:])):
@@ -238,7 +252,11 @@ class Diagram:
         dpi: int = 150,
         bbox_inches: str = "tight",
     ) -> Path:
-        """Render to SVG and optionally inject flowing-dash animation."""
+        """Render to SVG and optionally inject flowing-dash animation.
+
+        If ``ax`` is omitted, this method creates and closes a temporary figure.
+        Returns the output path as a ``Path`` object.
+        """
         out = Path(path)
         created_fig = ax is None
         if created_fig:
@@ -334,6 +352,9 @@ class Diagram:
 
         edge_lw = th.station_edge_width * (1.25 if is_interchange else 1.0)
 
+        # Interchange pill: a rounded rectangle spanning all track offsets.
+        # Orientation follows the spread direction: tracks offset in Y →
+        # vertical pill (tall, narrow); offset in X → horizontal pill (wide, short).
         if is_interchange and self.station_interchange_rect:
             sdy_here = sum(line_offset[li] for li in slines) / len(slines)
             rel = [line_offset[li] - sdy_here for li in slines]
@@ -373,7 +394,7 @@ class Diagram:
                 )
             patch.set_gid(f"metro-station-{s.name}")
             ax.add_patch(patch)
-            return
+            return  # pill replaces both outer ring and inner dot
 
         outer = Circle(
             (s.x, cy), radius,
@@ -453,7 +474,11 @@ class Diagram:
 
     def _pick_bend(self, sa, sb, offset, user_bend, station_dy, radius):
         """Choose hv or vh so the L-bend's vertical leg doesn't pass through
-        another station's circle."""
+        another station's circle.
+
+        If both candidates are equally valid/blocked, prefers ``user_bend``
+        (with additional direction-aware behavior for default ``"hv"``).
+        """
         x1, y1 = sa.x, sa.y
         x2, y2 = sb.x, sb.y
         if x1 == x2 or y1 == y2:
@@ -476,6 +501,10 @@ class Diagram:
             return "vh"
         if vh_blocked and not hv_blocked:
             return "hv"
+        # Both options clear.  Respect an explicit "vh" from the caller;
+        # for the default "hv" apply direction-aware logic: going left
+        # (return legs) → VH so the source bends immediately and the
+        # return run is a clean horizontal.  Going right (forward) → HV.
         if user_bend == "vh":
             return "vh"
         return "vh" if x2 < x1 else "hv"

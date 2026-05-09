@@ -1,73 +1,60 @@
-"""SVG post-processing: inject a flowing-dash animation layer onto metro tracks.
+"""SVG post-processing: inject animated metro-cart overlay.
 
-The animation metaphor is *data flowing through the pipeline* — a shimmer of
-dashes that travels along each track.  This is visually distinct from
-nf-metro's travelling-ball approach.
-
-The overlay is inserted *before* the station layer so dashes appear behind
-station circles.
+White rectangles with black outlines travel along each line's route.  Paths
+are extracted directly from the rendered track elements so carts follow the
+exact same offset tracks that are drawn (not the station-centre midline).
 
 Usage
 -----
     d.save_svg("pipeline.svg", animate=True)
 
     # or manually:
-    from metroplot._svg_animate import inject_flow_animation
-    inject_flow_animation("pipeline.svg", [ln.color for ln in d.lines])
+    from metroplot._svg_animate import inject_cart_animation
+    line_routes = [(ln.color, list(ln.routes[0])) for ln in d.lines if ln.routes]
+    inject_cart_animation("pipeline.svg", line_routes)
 """
 from __future__ import annotations
 
 import random
 import re
 import xml.etree.ElementTree as ET
-from collections import defaultdict
 from pathlib import Path
 
 _NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", _NS)
 ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
-# GID format: metro-track-{line_index}-{route_index}-{segment_index}
-_TRACK_RE = re.compile(r"^metro-track-(\d+)-(\d+)-\d+$")
+# Strips the leading "M x y" or "m x y" from a path string.
+_INITIAL_M = re.compile(r"^\s*[Mm]\s*\S+[,\s]+\S+\s*")
+_TRACK_RE = re.compile(r"^metro-track-\d+-\d+-\d+$")
 
 
-def inject_flow_animation(
+def inject_cart_animation(
     svg_path: str | Path,
-    line_colors: list[str],
+    line_routes: list[tuple[str, list[str]]],
     *,
-    speed: float = 3.0,
-    dash_len: float = 6.0,
-    gap_len: float = 44.0,
-    overlay_opacity: float = 0.42,
-    lighten: float = 0.30,
+    dur: float = 20.0,
+    carts_per_line: int = 4,
     seed: int | None = None,
 ) -> None:
-    """Add a flowing-dash animation overlay to a metroplot SVG file.
+    """Add animated metro-cart overlay to a metroplot SVG (modified in-place).
 
-    The file is modified in-place.  Track elements must carry GIDs of the
-    form ``metro-track-{line_index}-{route_index}-{segment_index}`` (set by
-    ``Diagram.render()``), and station elements must carry GIDs of the form
-    ``metro-station-{name}`` so the overlay can be inserted behind them.
-
-    When a line has multiple routes (branches), one route is chosen at random
-    for the animation so the dashes don't appear to duplicate at splits.
+    Carts are white rectangles with black outlines that travel along the
+    rendered track paths, including the per-line lateral offset.
 
     Parameters
     ----------
     svg_path:
         Path to the SVG to modify.
-    line_colors:
-        Hex colours in line order (``[ln.color for ln in d.lines]``).
-    speed:
-        Seconds for one full animation cycle.
-    dash_len / gap_len:
-        SVG user-units for the dash pattern.  Larger gap_len = sparser.
-    overlay_opacity:
-        Overall opacity of the animated overlay (0–1).
-    lighten:
-        Mix the line colour toward white (0 = exact colour, 1 = white).
+    line_routes:
+        ``(hex_color, [station_name, ...])`` for each line — only the count
+        matters; color is not used.
+    dur:
+        Seconds for one cart to traverse the full route (controls speed).
+    carts_per_line:
+        Number of cart instances per line (~1 per dur/carts_per_line seconds).
     seed:
-        Optional RNG seed for reproducible branch selection.
+        Optional RNG seed for reproducible begin-time distribution.
     """
     rng = random.Random(seed)
     path = Path(svg_path)
@@ -76,102 +63,53 @@ def inject_flow_animation(
     tree = ET.parse(path)
     root = tree.getroot()
 
-    # --- Collect track elements grouped by (line_index, route_index) ------
-    tracks_by_line_route: dict[tuple[int, int], list[ET.Element]] = defaultdict(list)
-    for elem in root.iter():
-        gid = elem.get("id", "")
-        m = _TRACK_RE.match(gid)
-        if m:
-            li, ri = int(m.group(1)), int(m.group(2))
-            tracks_by_line_route[(li, ri)].append(elem)
+    sw = _extract_track_stroke_width(root)
+    cart_w = sw * 2.6
+    cart_h = sw * 1.3
+    cart_rx = sw * 0.30
+    hw, hh = cart_w / 2, cart_h / 2
 
-    if not tracks_by_line_route:
+    defs_parts: list[str] = []
+    cart_parts: list[str] = ['<g id="metro-carts">']
+
+    for li in range(len(line_routes)):
+        route_d = _extract_route_path(root, li)
+        if not route_d:
+            continue
+
+        route_id = f"metro-route-{li}"
+        defs_parts.append(
+            f'<path id="{route_id}" d="{route_d}" fill="none" stroke="none"/>'
+        )
+
+        for _ in range(carts_per_line):
+            begin = -rng.uniform(0.0, dur)
+            cart_parts.append(
+                f'<rect width="{cart_w:.1f}" height="{cart_h:.1f}"'
+                f' x="{-hw:.1f}" y="{-hh:.1f}" rx="{cart_rx:.1f}"'
+                f' fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88">'
+                f'<animateMotion dur="{dur:.1f}s" begin="{begin:.2f}s"'
+                f' repeatCount="indefinite" rotate="auto" calcMode="paced">'
+                f'<mpath xlink:href="#{route_id}"/>'
+                f'</animateMotion>'
+                f'</rect>'
+            )
+
+    cart_parts.append("</g>")
+
+    if not defs_parts:
         return
 
-    # For each line, collect available route indices then pick one randomly
-    routes_per_line: dict[int, list[int]] = defaultdict(list)
-    for li, ri in tracks_by_line_route:
-        routes_per_line[li].append(ri)
+    defs_block = "<defs>\n" + "\n".join(defs_parts) + "\n</defs>"
+    cart_block = "\n".join(cart_parts)
 
-    chosen_route: dict[int, int] = {
-        li: rng.choice(sorted(routes))
-        for li, routes in routes_per_line.items()
-    }
-
-    # Build tracks_by_line using only the chosen route per line
-    tracks_by_line: dict[int, list[ET.Element]] = {}
-    for (li, ri), elems in tracks_by_line_route.items():
-        if ri == chosen_route[li]:
-            tracks_by_line.setdefault(li, []).extend(elems)
-
-    # --- Build CSS with per-line phase offsets (so parallel tracks stagger) -
-    period = dash_len + gap_len
-    css_parts = ["<style>"]
-
-    # Stagger each line by half a period divided across lines so dashes on
-    # parallel shared segments are visually offset from each other.
-    n_lines = max(tracks_by_line.keys()) + 1 if tracks_by_line else 1
-    for li in sorted(tracks_by_line):
-        phase = (li * period / max(n_lines, 2)) % period
-        css_parts += [
-            f"@keyframes metro-flow-{li} {{",
-            f"  from {{ stroke-dashoffset: {period + phase:.1f}; }}",
-            f"  to   {{ stroke-dashoffset: {phase:.1f}; }}",
-            "}",
-        ]
-
-    for li in sorted(tracks_by_line):
-        color = line_colors[li] if li < len(line_colors) else "#ffffff"
-        overlay_color = _lighten_hex(color, lighten)
-        css_parts += [
-            f".metro-anim-{li} {{",
-            "  fill: none;",
-            f"  stroke: {overlay_color};",
-            f"  opacity: {overlay_opacity};",
-            f"  stroke-dasharray: {dash_len:.1f} {gap_len:.1f};",
-            "  stroke-linecap: round;",
-            f"  animation: metro-flow-{li} {speed:.2f}s linear infinite;",
-            "}",
-        ]
-    css_parts.append("</style>")
-    css_block = "\n".join(css_parts)
-
-    # --- Build overlay group of duplicated paths --------------------------
-    overlay_parts = ['<g id="metro-animation-overlay">']
-    for li, elems in sorted(tracks_by_line.items()):
-        for orig in elems:
-            for child in _geometry_elements(orig):
-                sw = _extract_stroke_width(child.get("style", ""))
-                d_attr = child.get("d", "")
-                pts = child.get("points", "")
-                if d_attr:
-                    overlay_parts.append(
-                        f'<path class="metro-anim-{li}" '
-                        f'stroke-width="{sw}" d="{d_attr}"/>'
-                    )
-                elif pts:
-                    overlay_parts.append(
-                        f'<polyline class="metro-anim-{li}" '
-                        f'stroke-width="{sw}" points="{pts}"/>'
-                    )
-    overlay_parts.append("</g>")
-    overlay_block = "\n".join(overlay_parts)
-
-    # --- Insert overlay BEFORE the first station group --------------------
     station_marker = re.search(r'<g id="metro-station-', content)
     if station_marker:
-        insert_pos = station_marker.start()
-        new_content = (
-            content[:insert_pos]
-            + overlay_block + "\n"
-            + css_block + "\n"
-            + content[insert_pos:]
-        )
+        ins = station_marker.start()
+        new_content = content[:ins] + defs_block + "\n" + cart_block + "\n" + content[ins:]
     else:
         new_content = content.replace(
-            "</svg>",
-            f"{overlay_block}\n{css_block}\n</svg>",
-            1,
+            "</svg>", defs_block + "\n" + cart_block + "\n</svg>", 1
         )
 
     path.write_text(new_content, encoding="utf-8")
@@ -181,35 +119,63 @@ def inject_flow_animation(
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _geometry_elements(elem: ET.Element) -> list[ET.Element]:
-    """Return path/polyline elements that carry geometry for this artist.
+def _extract_route_path(root: ET.Element, li: int) -> str:
+    """Return a single chained SVG path for line *li*, route 0.
 
-    matplotlib wraps GID-tagged artists in <g id="..."> groups; the actual
-    <path> or <polyline> is a direct child (sometimes the element itself).
+    Finds all ``metro-track-{li}-0-{si}`` groups, sorts by segment index,
+    extracts the path ``d`` attribute from the first child <path> element, and
+    joins them into one continuous path string.  Because matplotlib draws each
+    segment with the per-line lateral offset already applied, the resulting
+    path hugs the actual rendered track rather than the station-centre midline.
     """
-    tag_local = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
-    if tag_local in ("path", "polyline"):
-        return [elem]
-    results = []
+    prefix = f"metro-track-{li}-0-"
+    segments: dict[int, str] = {}
+
+    for elem in root.iter():
+        gid = elem.get("id", "")
+        if not gid.startswith(prefix):
+            continue
+        try:
+            si = int(gid[len(prefix):])
+        except ValueError:
+            continue
+        for child in _walk_paths(elem):
+            d = child.get("d", "")
+            if d:
+                segments[si] = d.strip()
+                break
+
+    if not segments:
+        return ""
+
+    ordered = [segments[i] for i in sorted(segments)]
+
+    # Keep first segment as-is; for each subsequent segment strip the leading
+    # "M x y" so the path continues from the previous endpoint.
+    result = ordered[0]
+    for seg in ordered[1:]:
+        rest = _INITIAL_M.sub("", seg)
+        if rest:
+            result += " " + rest
+    return result
+
+
+def _extract_track_stroke_width(root: ET.Element) -> float:
+    """Return stroke-width (px) from the first metro-track-* path element."""
+    for elem in root.iter():
+        if not _TRACK_RE.match(elem.get("id", "")):
+            continue
+        for child in _walk_paths(elem):
+            m = re.search(r"stroke-width\s*:\s*([\d.]+)", child.get("style", ""))
+            if m:
+                return float(m.group(1))
+    return 8.0
+
+
+def _walk_paths(elem: ET.Element):
+    """Yield <path> and <polyline> descendants depth-first."""
+    tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+    if tag in ("path", "polyline"):
+        yield elem
     for child in elem:
-        ctag = child.tag.split("}")[-1] if "}" in child.tag else child.tag
-        if ctag in ("path", "polyline"):
-            results.append(child)
-    return results
-
-
-def _extract_stroke_width(style: str) -> str:
-    m = re.search(r"stroke-width\s*:\s*([\d.]+)", style)
-    return m.group(1) if m else "6"
-
-
-def _lighten_hex(hex_color: str, amount: float) -> str:
-    """Mix hex_color toward white by `amount` (0 = unchanged, 1 = white)."""
-    h = hex_color.lstrip("#")
-    if len(h) == 3:
-        h = "".join(c * 2 for c in h)
-    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-    r = int(r + (255 - r) * amount)
-    g = int(g + (255 - g) * amount)
-    b = int(b + (255 - b) * amount)
-    return f"#{r:02x}{g:02x}{b:02x}"
+        yield from _walk_paths(child)

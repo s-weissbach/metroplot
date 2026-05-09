@@ -34,7 +34,7 @@ from typing import Iterable, Mapping
 from metroplot._core import Diagram
 from metroplot._pipeline_layout import build_diagram_from_dag
 
-# ── Regex patterns ───────────────────────────────────────────────────────────────────────────────
+# ── Regex patterns ─────────────────────────────────────────────────────────────
 
 _HEADER_RE = re.compile(r"^\s*(graph|flowchart)\s+\w*\s*$", re.IGNORECASE)
 _COMMENT_RE = re.compile(r"%%.*$", re.M)
@@ -56,7 +56,7 @@ _NODE_RE = re.compile(
 )
 
 
-# ── Public API ───────────────────────────────────────────────────────────────────────────────
+# ── Public API ─────────────────────────────────────────────────────────────────
 
 def parse_mermaid_text(
     text: str,
@@ -131,7 +131,7 @@ def from_mermaid(
     sub_overrides:
         ``node_id -> sub label`` (small uppercase text under each station).
     lanes:
-        ``lane_label -> {"color": "#hex", "rules": [node_id, ...]}``.)
+        ``lane_label -> {"color": "#hex", "rules": [node_id, ...]}``.
         When provided each lane becomes its own metroplot Line.
     line_name, color:
         Default single-line name and colour (used when ``lanes`` is None).
@@ -192,7 +192,7 @@ def from_mermaid_file(
     return from_mermaid(Path(path).read_text(), **kwargs)
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────────────────
+# ── Helpers ────────────────────────────────────────────────────────────────────
 
 def _split_amp(segment: str) -> list[str]:
     """Split a node-group string on ``&`` and strip whitespace."""
