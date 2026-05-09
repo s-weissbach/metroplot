@@ -183,11 +183,17 @@ d = from_snakemake(
 d.render()
 ```
 
-End-to-end demos:
+**Mermaid** ([example_mermaid.py](examples/example_mermaid.py)):
 
-- Mermaid RNA-seq workflow → [examples/example_mermaid.py](examples/example_mermaid.py) → [graphics/mermaid_example.png](graphics/mermaid_example.png)
-- Snakemake on a real cell-type annotation benchmarking workflow → [examples/example_snakemake.py](examples/example_snakemake.py) → [graphics/snakemake_example.png](graphics/snakemake_example.png)
-- Nextflow on an nf-core-style RNA-seq pipeline → [examples/example_nextflow.py](examples/example_nextflow.py) → [graphics/nextflow_example.png](graphics/nextflow_example.png)
+<p align="center"><img src="graphics/mermaid_example.png" alt="mermaid example" width="100%"/></p>
+
+**Snakemake** ([example_snakemake.py](examples/example_snakemake.py)):
+
+<p align="center"><img src="graphics/snakemake_example.png" alt="snakemake example" width="100%"/></p>
+
+**Nextflow** ([example_nextflow.py](examples/example_nextflow.py)):
+
+<p align="center"><img src="graphics/nextflow_example.png" alt="nextflow example" width="100%"/></p>
 
 Parsers are best-effort regex-based. For anything they miss, pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
 
