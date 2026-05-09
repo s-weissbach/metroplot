@@ -25,9 +25,6 @@ dependencies = ["matplotlib"]
 [project.optional-dependencies]
 dev = ["pytest"]
 
-[project.scripts]
-metroplot = "metroplot.cli:main"
-
 [tool.setuptools.packages.find]
 where = ["src"]
 

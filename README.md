@@ -105,98 +105,6 @@ d.save_svg("pipeline.svg", ax=ax, animate=True)
 plt.close(fig)
 ```
 
-## CLI
-
-After `pip install metroplot` the `metroplot` command is available:
-
-```sh
-# From a Snakemake workflow directory
-metroplot snakemake path/to/workflow -o pipeline.png
-
-# From a Nextflow DSL2 directory
-metroplot nextflow path/to/workflow -o pipeline.png
-
-# Common options
-metroplot snakemake path/to/workflow \
-  --line-name "My pipeline" \
-  --color "#1f2a44" \
-  --label-overrides '{"star_align":"STAR"}' \
-  --sub-overrides '{"star_align":"ALIGNMENT"}' \
-  --column-spacing 2.5 \
-  --branch-spacing 2.5 \
-  --no-legend \
-  --dpi 300 \
-  --figsize 18 6
-```
-
-## Pipeline workflows
-
-metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Three formats are supported:
-
-- **Mermaid** — `from metroplot import from_mermaid` parses a `graph` or `flowchart` string directly. Useful for quick prototyping or when your pipeline is already described in Mermaid.
-- **Snakemake** — `from metroplot.snakemake_io import from_snakemake` parses every `Snakefile` / `*.smk` under a directory, matches each rule's `output:` paths to downstream `input:` paths to derive the DAG.
-- **Nextflow (DSL2)** — `from metroplot.nextflow_io import from_nextflow` parses every `*.nf` file, finds `process NAME { … }` blocks, and extracts edges by reading `workflow { … }` blocks for invocations like `STAR(TRIM.out)`.
-
-All three share the same downstream layout/Diagram-builder (`metroplot._pipeline_layout`): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
-
-### Mermaid
-
-```python
-from metroplot import from_mermaid
-
-MERMAID = """
-flowchart LR
-    FASTQ[Raw Reads] --> QC[FastQC]
-    FASTQ            --> TRIM[Trim Galore]
-    TRIM             --> STAR[STAR] & HISAT2[HISAT2]
-    STAR & HISAT2    --> COUNTS[featureCounts]
-    COUNTS           --> DESEQ2[DESeq2]
-    HISAT2           --> BIGWIG[bigWig]
-"""
-
-d = from_mermaid(
-    MERMAID,
-    line_name="RNA-seq",
-    color="#e8614a",
-    sub_overrides={"DESEQ2": "DIFF EXPR", "BIGWIG": "COVERAGE"},
-)
-d.render()
-```
-
-Supported: `-->` / `---` edges, optional `|edge label|`, node labels in `[]` `()` `(())` `{}`, `&` for multiple sources/targets, chained arrows `A --> B --> C`, `%%` comments. Not supported: subgraphs, classDef/style directives.
-
-### Snakemake / Nextflow
-
-```python
-from metroplot.snakemake_io import from_snakemake   # or: from metroplot.nextflow_io import from_nextflow
-
-d = from_snakemake(
-    "path/to/workflow",
-    line_name="My pipeline",
-    label_overrides={"run_method": "scanpy/Seurat"},
-    sub_overrides={"run_method": "ANNOTATION"},
-    lanes={                                              # optional: split into multiple parallel lines
-        "QC":   {"color": "#aaaaaa", "rules": ["FASTQC", "MULTIQC"]},
-        "Main": {"color": "#1f2a44", "rules": ["FASTP", "STAR", "FEATURECOUNTS", "DESEQ2"]},
-    },
-)
-d.render()
-```
-
-**Mermaid** ([example_mermaid.py](examples/example_mermaid.py)):
-
-<p align="center"><img src="graphics/mermaid_example.png" alt="mermaid example" width="100%"/></p>
-
-**Snakemake** ([example_snakemake.py](examples/example_snakemake.py)):
-
-<p align="center"><img src="graphics/snakemake_example.png" alt="snakemake example" width="100%"/></p>
-
-**Nextflow** ([example_nextflow.py](examples/example_nextflow.py)):
-
-<p align="center"><img src="graphics/nextflow_example.png" alt="nextflow example" width="100%"/></p>
-
-Parsers are best-effort regex-based. For anything they miss, pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
-
 ## Concepts
 
 - **Station** — a node at `(x, y)` on a grid. You control layout fully; there's no auto-layout.
@@ -244,16 +152,10 @@ THEMES["myteam"] = Theme(
 
 ### Animated SVG
 
-Pass `animate=True` to `save_svg` to inject flowing-dash animation (data moving through the pipeline):
+Pass `animate=True` to `save_svg` to inject animated metro carts travelling along each line:
 
 ```python
 d.save_svg("pipeline.svg", animate=True)
-```
-
-Or from the CLI:
-
-```sh
-metroplot nextflow path/to/workflow --theme dark --animate -o pipeline.svg
 ```
 
 ## Tuning
