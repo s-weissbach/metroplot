@@ -66,8 +66,8 @@ class Diagram:
     corner_radius: float = 0.20
     label_font: int = 9
     sub_font: int = 7
-    label_dy_main: float = 0.38
-    label_dy_sub: float = 0.20
+    label_dy_main: float = 0.50
+    label_dy_sub: float = 0.32
     legend_loc: str | None = None
     legend_font: int = 10
     auto_bend: bool = True
