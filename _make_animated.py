@@ -17,10 +17,20 @@ from metroplot.themes import LIGHT, PALETTES, LOGO_ORANGE
 _, BLUE, TEAL, NAVY = PALETTES["default"]
 ORANGE = LOGO_ORANGE
 
-theme = dataclasses.replace(LIGHT, background="#f5f6f8")
+# nf-metro style: white ring, colored edge for single-line, no inner dot
+theme = dataclasses.replace(
+    LIGHT,
+    background="#f5f6f8",
+    station_dot=False,
+    station_colored_edge=True,
+    station_edge="#555555",
+    station_edge_width=2.0,
+)
 
 d = Diagram(theme=theme, legend_loc="lower right",
-            line_width=5.5, station_radius=0.45, label_font=9, sub_font=7)
+            line_width=4.5, track_spacing=0.11, station_radius=0.24,
+            station_interchange_rect=True,
+            label_font=9, sub_font=7)
 
 # ── Pre-processing (shared trunk, going RIGHT) ────────────────────────────────
 d.station("fastq",       0,  0,  "FASTQ",           "RAW READS",      "above")

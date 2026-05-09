@@ -71,6 +71,7 @@ class Diagram:
     legend_loc: str | None = None
     legend_font: int = 10
     auto_bend: bool = True
+    station_interchange_rect: bool = False
     theme: str | Theme = "light"
     stations: dict = field(default_factory=dict)
     lines: list = field(default_factory=list)
@@ -212,7 +213,7 @@ class Diagram:
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
             slines = station_lines.get(s.name, [])
-            self._draw_station(ax, s, cy, radius, slines, th)
+            self._draw_station(ax, s, cy, radius, slines, th, line_offset)
             if s.label:
                 self._draw_label(ax, s, cy, th)
 
@@ -335,17 +336,40 @@ class Diagram:
                     zorder=12)
 
     def _draw_station(self, ax, s: Station, cy: float, radius: float,
-                      slines: list[int], th: Theme) -> None:
+                      slines: list[int], th: Theme,
+                      line_offset: dict[int, float]) -> None:
         is_interchange = len(slines) > 1
 
-        # Edge colour: use line colour for single-line stations on dark-style
-        # themes; use theme default otherwise.
         if th.station_colored_edge and len(slines) == 1:
             edge_color = self.lines[slines[0]].color
         else:
             edge_color = th.station_edge
 
         edge_lw = th.station_edge_width * (1.25 if is_interchange else 1.0)
+
+        # Interchange pill: a rounded rectangle spanning all track offsets.
+        if is_interchange and self.station_interchange_rect:
+            sdy_here = sum(line_offset[li] for li in slines) / len(slines)
+            rel = [line_offset[li] - sdy_here for li in slines]
+            pad = radius
+            y_lo = cy + min(rel) - pad
+            y_hi = cy + max(rel) + pad
+            h = y_hi - y_lo
+            w = radius * 2
+            r_box = min(w / 2, h / 2) * 0.98
+            patch = FancyBboxPatch(
+                (s.x - w / 2 + r_box, y_lo + r_box),
+                max(w - 2 * r_box, 1e-3),
+                max(h - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=th.station_fill,
+                edgecolor=edge_color,
+                linewidth=edge_lw,
+                zorder=10,
+            )
+            patch.set_gid(f"metro-station-{s.name}")
+            ax.add_patch(patch)
+            return  # pill replaces both outer ring and inner dot
 
         outer = Circle(
             (s.x, cy), radius,
@@ -357,7 +381,6 @@ class Diagram:
         outer.set_gid(f"metro-station-{s.name}")
         ax.add_patch(outer)
 
-        # Inner coloured dot for themes that use it (light, paper)
         if th.station_dot and len(slines) == 1:
             primary_color = self.lines[slines[0]].color
             ax.add_patch(Circle(
@@ -367,7 +390,6 @@ class Diagram:
                 zorder=11,
             ))
         elif th.station_dot and is_interchange:
-            # Interchange: muted inner fill to signal multi-line
             muted = "#888888" if th.background in ("white", "#fafaf8") else "#666666"
             ax.add_patch(Circle(
                 (s.x, cy), radius * th.station_dot_ratio,

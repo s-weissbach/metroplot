@@ -1,8 +1,8 @@
 """SVG post-processing: inject animated metro-cart overlay.
 
-White rectangles with black outlines travel along each line's route,
-visualising data flowing through the pipeline.  Carts are randomly
-distributed so they appear to arrive at roughly one per second.
+White rectangles with black outlines travel along each line's route.  Paths
+are extracted directly from the rendered track elements so carts follow the
+exact same offset tracks that are drawn (not the station-centre midline).
 
 Usage
 -----
@@ -24,7 +24,8 @@ _NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", _NS)
 ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 
-_NUM_RE = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+# Strips the leading "M x y" or "m x y" from a path string.
+_INITIAL_M = re.compile(r"^\s*[Mm]\s*\S+[,\s]+\S+\s*")
 _TRACK_RE = re.compile(r"^metro-track-\d+-\d+-\d+$")
 
 
@@ -32,22 +33,26 @@ def inject_cart_animation(
     svg_path: str | Path,
     line_routes: list[tuple[str, list[str]]],
     *,
-    dur: float = 12.0,
-    carts_per_line: int = 12,
+    dur: float = 20.0,
+    carts_per_line: int = 4,
     seed: int | None = None,
 ) -> None:
     """Add animated metro-cart overlay to a metroplot SVG (modified in-place).
+
+    Carts are white rectangles with black outlines that travel along the
+    rendered track paths, including the per-line lateral offset.
 
     Parameters
     ----------
     svg_path:
         Path to the SVG to modify.
     line_routes:
-        List of ``(hex_color, [station_name, ...])`` in line order.
+        ``(hex_color, [station_name, ...])`` for each line — only the count
+        matters; color is not used.
     dur:
-        Seconds for one cart to traverse the full route.
+        Seconds for one cart to traverse the full route (controls speed).
     carts_per_line:
-        Number of cart instances per line (~1/s with default dur=12, carts=12).
+        Number of cart instances per line (~1 per dur/carts_per_line seconds).
     seed:
         Optional RNG seed for reproducible begin-time distribution.
     """
@@ -58,28 +63,23 @@ def inject_cart_animation(
     tree = ET.parse(path)
     root = tree.getroot()
 
-    station_centers = _extract_station_centers(root)
-    if not station_centers:
-        return
-
     sw = _extract_track_stroke_width(root)
-    cart_w = sw * 2.8
-    cart_h = sw * 1.5
-    cart_rx = sw * 0.35
+    cart_w = sw * 2.6
+    cart_h = sw * 1.3
+    cart_rx = sw * 0.30
     hw, hh = cart_w / 2, cart_h / 2
 
     defs_parts: list[str] = []
     cart_parts: list[str] = ['<g id="metro-carts">']
 
-    for li, (_, station_names) in enumerate(line_routes):
-        centers = [station_centers[n] for n in station_names if n in station_centers]
-        if len(centers) < 2:
+    for li in range(len(line_routes)):
+        route_d = _extract_route_path(root, li)
+        if not route_d:
             continue
 
         route_id = f"metro-route-{li}"
         defs_parts.append(
-            f'<path id="{route_id}" d="{_build_route_path(centers)}"'
-            f' fill="none" stroke="none"/>'
+            f'<path id="{route_id}" d="{route_d}" fill="none" stroke="none"/>'
         )
 
         for _ in range(carts_per_line):
@@ -87,7 +87,7 @@ def inject_cart_animation(
             cart_parts.append(
                 f'<rect width="{cart_w:.1f}" height="{cart_h:.1f}"'
                 f' x="{-hw:.1f}" y="{-hh:.1f}" rx="{cart_rx:.1f}"'
-                f' fill="#ffffff" stroke="#222222" stroke-width="1.2" opacity="0.90">'
+                f' fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88">'
                 f'<animateMotion dur="{dur:.1f}s" begin="{begin:.2f}s"'
                 f' repeatCount="indefinite" rotate="auto" calcMode="paced">'
                 f'<mpath xlink:href="#{route_id}"/>'
@@ -119,26 +119,45 @@ def inject_cart_animation(
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _extract_station_centers(root: ET.Element) -> dict[str, tuple[float, float]]:
-    """Return SVG pixel centers keyed by station name from metro-station-* groups."""
-    centers: dict[str, tuple[float, float]] = {}
+def _extract_route_path(root: ET.Element, li: int) -> str:
+    """Return a single chained SVG path for line *li*, route 0.
+
+    Finds all ``metro-track-{li}-0-{si}`` groups, sorts by segment index,
+    extracts the path ``d`` attribute from the first child <path> element, and
+    joins them into one continuous path string.  Because matplotlib draws each
+    segment with the per-line lateral offset already applied, the resulting
+    path hugs the actual rendered track rather than the station-centre midline.
+    """
+    prefix = f"metro-track-{li}-0-"
+    segments: dict[int, str] = {}
+
     for elem in root.iter():
         gid = elem.get("id", "")
-        if not gid.startswith("metro-station-"):
+        if not gid.startswith(prefix):
             continue
-        name = gid[len("metro-station-"):]
+        try:
+            si = int(gid[len(prefix):])
+        except ValueError:
+            continue
         for child in _walk_paths(elem):
             d = child.get("d", "")
-            nums = [float(x) for x in _NUM_RE.findall(d)]
-            if len(nums) >= 4:
-                xs = nums[0::2]
-                ys = nums[1::2]
-                centers[name] = (
-                    (min(xs) + max(xs)) / 2,
-                    (min(ys) + max(ys)) / 2,
-                )
+            if d:
+                segments[si] = d.strip()
                 break
-    return centers
+
+    if not segments:
+        return ""
+
+    ordered = [segments[i] for i in sorted(segments)]
+
+    # Keep first segment as-is; for each subsequent segment strip the leading
+    # "M x y" so the path continues from the previous endpoint.
+    result = ordered[0]
+    for seg in ordered[1:]:
+        rest = _INITIAL_M.sub("", seg)
+        if rest:
+            result += " " + rest
+    return result
 
 
 def _extract_track_stroke_width(root: ET.Element) -> float:
@@ -160,31 +179,3 @@ def _walk_paths(elem: ET.Element):
         yield elem
     for child in elem:
         yield from _walk_paths(child)
-
-
-def _build_route_path(centers: list[tuple[float, float]]) -> str:
-    """Build an SVG path through SVG-pixel station centers with L-bends.
-
-    Uses VH (vertical-first) when the move is at least 70 % as tall as it is
-    wide — this matches the auto_bend collision-avoidance logic in the renderer
-    for typical U-turn layouts where tall branches hang off a horizontal spine.
-    """
-    if len(centers) < 2:
-        return ""
-    x_prev, y_prev = centers[0]
-    parts = [f"M {x_prev:.1f} {y_prev:.1f}"]
-    for x_cur, y_cur in centers[1:]:
-        dx = abs(x_cur - x_prev)
-        dy = abs(y_cur - y_prev)
-        if dy < 2.0 or dx < 2.0:
-            parts.append(f"L {x_cur:.1f} {y_cur:.1f}")
-        elif dy > 0.7 * dx:
-            # VH: go vertical first, then horizontal
-            parts.append(f"L {x_prev:.1f} {y_cur:.1f}")
-            parts.append(f"L {x_cur:.1f} {y_cur:.1f}")
-        else:
-            # HV: go horizontal first, then vertical
-            parts.append(f"L {x_cur:.1f} {y_prev:.1f}")
-            parts.append(f"L {x_cur:.1f} {y_cur:.1f}")
-        x_prev, y_prev = x_cur, y_cur
-    return " ".join(parts)
