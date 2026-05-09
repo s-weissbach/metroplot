@@ -86,7 +86,12 @@ class Diagram:
     def section(self, label, *, stations=None, x=None, y=None,
                 width=None, height=None, sub="", padding=0.65,
                 label_pos="top-middle", label_rotation=0.0):
-        """Add a labelled grouping box around a set of stations."""
+        """Add a labelled grouping box around a set of stations.
+
+        Provide either:
+        - ``stations=[...]`` to auto-compute bounds from named stations, or
+        - explicit ``x, y, width, height`` to place the box manually.
+        """
         if stations is None and any(v is None for v in (x, y, width, height)):
             raise ValueError(
                 "section() requires either stations= or all of x, y, width, height"
@@ -247,7 +252,11 @@ class Diagram:
         dpi: int = 150,
         bbox_inches: str = "tight",
     ) -> Path:
-        """Render to SVG and optionally inject flowing-dash animation."""
+        """Render to SVG and optionally inject flowing-dash animation.
+
+        If ``ax`` is omitted, this method creates and closes a temporary figure.
+        Returns the output path as a ``Path`` object.
+        """
         out = Path(path)
         created_fig = ax is None
         if created_fig:
@@ -465,7 +474,11 @@ class Diagram:
 
     def _pick_bend(self, sa, sb, offset, user_bend, station_dy, radius):
         """Choose hv or vh so the L-bend's vertical leg doesn't pass through
-        another station's circle."""
+        another station's circle.
+
+        If both candidates are equally valid/blocked, prefers ``user_bend``
+        (with additional direction-aware behavior for default ``"hv"``).
+        """
         x1, y1 = sa.x, sa.y
         x2, y2 = sb.x, sb.y
         if x1 == x2 or y1 == y2:
