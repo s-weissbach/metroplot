@@ -86,31 +86,7 @@ class Diagram:
     def section(self, label, *, stations=None, x=None, y=None,
                 width=None, height=None, sub="", padding=0.65,
                 label_pos="top-middle", label_rotation=0.0):
-        """Add a labelled grouping box around a set of stations.
-
-        Parameters
-        ----------
-        label:
-            Text shown on the box.
-        stations:
-            List of station names whose coordinates define the bounding box.
-            Bounds are resolved at render time so station_dy offsets are
-            included.  Either ``stations`` or all of ``x/y/width/height``
-            must be provided.
-        x, y, width, height:
-            Manual lower-left corner and dimensions (diagram coordinates).
-        sub:
-            Optional smaller label drawn alongside the main label.
-        padding:
-            Extra space added around station positions when using auto bounds.
-        label_pos:
-            Where to place the label relative to the box.  One of:
-            ``"top-left"``, ``"top-middle"`` (default), ``"top-right"``,
-            ``"bottom-left"``, ``"bottom-middle"``, ``"bottom-right"``,
-            ``"left"``, ``"right"``.
-        label_rotation:
-            Degrees to rotate the label text (default 0).
-        """
+        """Add a labelled grouping box around a set of stations."""
         if stations is None and any(v is None for v in (x, y, width, height)):
             raise ValueError(
                 "section() requires either stations= or all of x, y, width, height"
@@ -140,7 +116,6 @@ class Diagram:
         if ax is None:
             _, ax = plt.subplots(figsize=(13, 5))
 
-        # Apply background colour ("none" = transparent)
         ax.set_facecolor(th.background)
         fig = ax.get_figure()
         if fig is not None:
@@ -157,9 +132,6 @@ class Diagram:
                     if li not in users[key]:
                         users[key].append(li)
 
-        # Each line gets a single offset across its whole route so that
-        # tracks stay continuous when they leave a shared trunk. Offset is
-        # taken from the largest cohort the line participates in.
         line_offset: dict[int, float] = {}
         for li in range(len(self.lines)):
             cohorts = [c for c in users.values() if li in c]
@@ -169,9 +141,6 @@ class Diagram:
             best = max(cohorts, key=lambda c: (len(c), -c.index(li)))
             line_offset[li] = (best.index(li) - (len(best) - 1) / 2) * self.track_spacing
 
-        # Each station shifts to the mean offset of the lines passing through
-        # it: a single-line station sits exactly on its line's track, a multi-
-        # line station sits at the centroid (lines fan out around it).
         station_lines: dict[str, list[int]] = defaultdict(list)
         for li, ln in enumerate(self.lines):
             for route in ln.routes:
@@ -183,15 +152,11 @@ class Diagram:
             for name, lis in station_lines.items()
         }
 
-        # Auto-grow the station radius if needed: line endpoints sit at
-        # offset distance in both x and y from a station's center, so we
-        # need radius >= sqrt(2) * max_offset for them to stay hidden.
         max_offset = max((abs(o) for o in line_offset.values()), default=0.0)
         radius = max(self.station_radius, math.sqrt(2) * max_offset * 1.05)
 
         self._validate_layout(station_dy, radius)
 
-        # --- Draw section boxes (behind everything else) ----------------
         for spec in self._sections:
             self._draw_section(ax, spec, station_dy, th)
 
@@ -245,7 +210,6 @@ class Diagram:
                     self._draw_segment(ax, sa, sb, ln, line_offset[li], bend,
                                        gid=gid, theme=th)
 
-        # --- Draw stations ----------------------------------------------
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
             slines = station_lines.get(s.name, [])
@@ -254,7 +218,6 @@ class Diagram:
             if s.label:
                 self._draw_label(ax, s, cy, th)
 
-        # --- Legend -----------------------------------------------------
         if self.legend_loc and self.lines:
             handles = [Line2D([0], [0], color=ln.color,
                               linewidth=self.line_width, solid_capstyle="round",
@@ -284,10 +247,7 @@ class Diagram:
         dpi: int = 150,
         bbox_inches: str = "tight",
     ) -> Path:
-        """Render to SVG and optionally inject flowing-dash animation.
-
-        Creates a figure internally if ax is None.  Returns the resolved path.
-        """
+        """Render to SVG and optionally inject flowing-dash animation."""
         out = Path(path)
         created_fig = ax is None
         if created_fig:
@@ -326,8 +286,6 @@ class Diagram:
             lx, ly, w, h = spec.x, spec.y, spec.width, spec.height
 
         r = th.section_corner_radius
-        # FancyBboxPatch with boxstyle="round,pad=r" expands the rectangle by r
-        # on each side, so we shrink the inner rect to compensate.
         patch = FancyBboxPatch(
             (lx + r, ly + r),
             max(w - 2 * r, 1e-3),
@@ -428,6 +386,7 @@ class Diagram:
             patch.set_gid(f"metro-station-{s.name}")
             ax.add_patch(patch)
             return  # pill replaces both outer ring and inner dot
+            return  # pill replaces both outer ring and inner dot
 
         outer = Circle(
             (s.x, cy), radius,
@@ -460,7 +419,6 @@ class Diagram:
                       offset: float, bend: str, *, gid: str, theme: Theme) -> None:
         x1, y1, x2, y2 = sa.x, sa.y, sb.x, sb.y
 
-        # Optional glow pass (wider semi-transparent halo)
         if theme.glow:
             glow_lw = self.line_width * theme.glow_width_multiplier
             self._draw_raw_segment(
@@ -491,7 +449,6 @@ class Diagram:
                 artists[0].set_gid(gid)
             return
 
-        # L-bend with rounded corner via quadratic Bezier
         if bend == "hv":
             cx, cy = x2 + offset, y1 + offset
             verts, codes = self._rounded_l((x1, cy), (cx, cy), (cx, y2 + offset))
@@ -509,8 +466,7 @@ class Diagram:
 
     def _pick_bend(self, sa, sb, offset, user_bend, station_dy, radius):
         """Choose hv or vh so the L-bend's vertical leg doesn't pass through
-        another station's circle. Returns user_bend when both options are
-        clear (or both blocked)."""
+        another station's circle."""
         x1, y1 = sa.x, sa.y
         x2, y2 = sb.x, sb.y
         if x1 == x2 or y1 == y2:
@@ -542,8 +498,6 @@ class Diagram:
         return "vh" if x2 < x1 else "hv"
 
     def _validate_layout(self, station_dy, radius):
-        """Raise on stations sharing exact coordinates; warn when stations
-        sit closer than 2 * radius (their circles would overlap)."""
         items = list(self.stations.values())
         for i, sa in enumerate(items):
             ax_, ay = sa.x, sa.y + station_dy.get(sa.name, 0.0)
@@ -563,8 +517,6 @@ class Diagram:
                     )
 
     def _rounded_l(self, start, corner, end):
-        """Three vertices defining an axis-aligned L. Insert a quadratic Bezier
-        at the corner with control point at the corner itself."""
         sx, sy = start
         cx, cy = corner
         ex, ey = end
@@ -581,9 +533,6 @@ class Diagram:
                 [MPath.MOVETO, MPath.LINETO, MPath.CURVE3, MPath.CURVE3, MPath.LINETO])
 
     def _draw_label(self, ax, s: Station, cy: float, th: Theme) -> None:
-        # Each label_pos defines an offset and alignment for both the main
-        # bold label and the smaller sub label. label_dx / label_dy on the
-        # station add a free-form tweak on top.
         if s.label_pos == "above":
             main = (0,  self.label_dy_main, "center", "bottom")
             sub  = (0,  self.label_dy_sub,  "center", "bottom")

@@ -132,6 +132,7 @@ def from_mermaid(
         ``node_id -> sub label`` (small uppercase text under each station).
     lanes:
         ``lane_label -> {"color": "#hex", "rules": [node_id, ...]}``.
+        ``lane_label -> {"color": "#hex", "rules": [node_id, ...]}``.
         When provided each lane becomes its own metroplot Line.
     line_name, color:
         Default single-line name and colour (used when ``lanes`` is None).
