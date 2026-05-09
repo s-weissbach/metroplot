@@ -195,17 +195,53 @@ class Diagram:
         for spec in self._sections:
             self._draw_section(ax, spec, station_dy, th)
 
-        # --- Draw tracks ------------------------------------------------
-        seg_counters: dict[tuple, int] = defaultdict(int)
+        # --- Pre-compute bends; tally spread direction per station ------
+        # line_offset is applied in Y for horizontal segments, in X for
+        # vertical segments, and diagonally for L-bends.  For the
+        # interchange pill to orient correctly we vote per station:
+        #   HV bend source → y-spread (horizontal departure)
+        #   HV bend dest   → x-spread (vertical arrival)
+        #   VH bend source → x-spread (vertical departure)
+        #   VH bend dest   → y-spread (horizontal arrival)
+        x_votes: dict[str, int] = defaultdict(int)
+        y_votes: dict[str, int] = defaultdict(int)
+        pre_bends: dict[tuple[int, int, int], str] = {}
+
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
                 user_bend = ln.bends[ri] if ri < len(ln.bends) else "hv"
-                for a, b in zip(route[:-1], route[1:]):
+                for si, (a, b) in enumerate(zip(route[:-1], route[1:])):
                     sa, sb = self.stations[a], self.stations[b]
-                    bend = self._pick_bend(sa, sb, line_offset[li], user_bend,
-                                           station_dy, radius) if self.auto_bend else user_bend
-                    gid = f"metro-track-{li}-{ri}-{seg_counters[(li, ri)]}"
-                    seg_counters[(li, ri)] += 1
+                    if sa.y == sb.y:
+                        bend = user_bend
+                        y_votes[a] += 1; y_votes[b] += 1
+                    elif sa.x == sb.x:
+                        bend = user_bend
+                        x_votes[a] += 1; x_votes[b] += 1
+                    else:
+                        bend = (self._pick_bend(sa, sb, line_offset[li],
+                                                user_bend, station_dy, radius)
+                                if self.auto_bend else user_bend)
+                        if bend == "hv":
+                            y_votes[a] += 1   # horizontal departure
+                            x_votes[b] += 1   # vertical arrival
+                        else:
+                            x_votes[a] += 1   # vertical departure
+                            y_votes[b] += 1   # horizontal arrival
+                    pre_bends[(li, ri, si)] = bend
+
+        station_spread: dict[str, str] = {
+            name: "x" if x_votes[name] > y_votes[name] else "y"
+            for name in self.stations
+        }
+
+        # --- Draw tracks ------------------------------------------------
+        for li, ln in enumerate(self.lines):
+            for ri, route in enumerate(ln.routes):
+                for si, (a, b) in enumerate(zip(route[:-1], route[1:])):
+                    sa, sb = self.stations[a], self.stations[b]
+                    bend = pre_bends[(li, ri, si)]
+                    gid = f"metro-track-{li}-{ri}-{si}"
                     self._draw_segment(ax, sa, sb, ln, line_offset[li], bend,
                                        gid=gid, theme=th)
 
@@ -213,7 +249,8 @@ class Diagram:
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
             slines = station_lines.get(s.name, [])
-            self._draw_station(ax, s, cy, radius, slines, th, line_offset)
+            self._draw_station(ax, s, cy, radius, slines, th,
+                               line_offset, station_spread)
             if s.label:
                 self._draw_label(ax, s, cy, th)
 
@@ -337,7 +374,8 @@ class Diagram:
 
     def _draw_station(self, ax, s: Station, cy: float, radius: float,
                       slines: list[int], th: Theme,
-                      line_offset: dict[int, float]) -> None:
+                      line_offset: dict[int, float],
+                      station_spread: dict[str, str] | None = None) -> None:
         is_interchange = len(slines) > 1
 
         if th.station_colored_edge and len(slines) == 1:
@@ -348,25 +386,45 @@ class Diagram:
         edge_lw = th.station_edge_width * (1.25 if is_interchange else 1.0)
 
         # Interchange pill: a rounded rectangle spanning all track offsets.
+        # Orientation follows the spread direction: tracks offset in Y →
+        # vertical pill (tall, narrow); offset in X → horizontal pill (wide, short).
         if is_interchange and self.station_interchange_rect:
             sdy_here = sum(line_offset[li] for li in slines) / len(slines)
             rel = [line_offset[li] - sdy_here for li in slines]
             pad = radius * 0.45
-            y_lo = cy + min(rel) - pad
-            y_hi = cy + max(rel) + pad
-            h = y_hi - y_lo
-            w = radius * 1.3
-            r_box = min(w / 2, h / 2) * 0.98
-            patch = FancyBboxPatch(
-                (s.x - w / 2 + r_box, y_lo + r_box),
-                max(w - 2 * r_box, 1e-3),
-                max(h - 2 * r_box, 1e-3),
-                boxstyle=f"round,pad={r_box}",
-                facecolor=th.station_fill,
-                edgecolor=edge_color,
-                linewidth=edge_lw,
-                zorder=10,
-            )
+            spread = (station_spread or {}).get(s.name, "y")
+            if spread == "x":
+                x_lo = s.x + min(rel) - pad
+                x_hi = s.x + max(rel) + pad
+                w = x_hi - x_lo
+                h = radius * 1.3
+                r_box = min(w / 2, h / 2) * 0.98
+                patch = FancyBboxPatch(
+                    (x_lo + r_box, cy - h / 2 + r_box),
+                    max(w - 2 * r_box, 1e-3),
+                    max(h - 2 * r_box, 1e-3),
+                    boxstyle=f"round,pad={r_box}",
+                    facecolor=th.station_fill,
+                    edgecolor=edge_color,
+                    linewidth=edge_lw,
+                    zorder=10,
+                )
+            else:
+                y_lo = cy + min(rel) - pad
+                y_hi = cy + max(rel) + pad
+                h = y_hi - y_lo
+                w = radius * 1.3
+                r_box = min(w / 2, h / 2) * 0.98
+                patch = FancyBboxPatch(
+                    (s.x - w / 2 + r_box, y_lo + r_box),
+                    max(w - 2 * r_box, 1e-3),
+                    max(h - 2 * r_box, 1e-3),
+                    boxstyle=f"round,pad={r_box}",
+                    facecolor=th.station_fill,
+                    edgecolor=edge_color,
+                    linewidth=edge_lw,
+                    zorder=10,
+                )
             patch.set_gid(f"metro-station-{s.name}")
             ax.add_patch(patch)
             return  # pill replaces both outer ring and inner dot
