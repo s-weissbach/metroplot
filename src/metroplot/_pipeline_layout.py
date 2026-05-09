@@ -11,10 +11,12 @@ label overrides — lives here and is shared across formats.
 """
 from __future__ import annotations
 
+import dataclasses
 from collections import defaultdict
 from typing import Iterable, Mapping
 
 from metroplot._core import Diagram
+from metroplot.themes import get_theme, Theme
 
 
 def build_diagram_from_dag(
@@ -29,7 +31,8 @@ def build_diagram_from_dag(
     label_overrides: Mapping[str, str] | None = None,
     sub_overrides: Mapping[str, str] | None = None,
     lanes: Mapping[str, Mapping] | None = None,
-    theme: "str | object" = "light",
+    theme: "str | Theme" = "light",
+    background: str | None = None,
 ) -> Diagram:
     """Build a Diagram from a parsed DAG.
 
@@ -57,13 +60,16 @@ def build_diagram_from_dag(
     positions = _layout(rules, levels, spine, column_spacing, branch_spacing)
     paths = _enumerate_paths(rules, deps, incoming)
 
-    d = Diagram(legend_loc=legend_loc, theme=theme)
+    resolved_theme: Theme = get_theme(theme) if isinstance(theme, str) else theme
+    if background is not None:
+        resolved_theme = dataclasses.replace(resolved_theme, background=background)
+    d = Diagram(legend_loc=legend_loc, theme=resolved_theme)
     for r in rules:
         x, y = positions[r["name"]]
         label = label_overrides.get(r["name"], r["name"].replace("_", " "))
         sub = sub_overrides.get(r["name"], "")
         d.station(r["name"], x, y, label, sub,
-                  label_pos="above" if y > 0 else "below")
+                  label_pos="above" if y >= 0 else "below")
 
     if lanes:
         for lane_label, lane_def in lanes.items():

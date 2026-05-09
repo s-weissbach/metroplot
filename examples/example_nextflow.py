@@ -8,6 +8,8 @@ alternative-splicing analysis (rMATS), merging into a multiqc report.
 from pathlib import Path
 import tempfile
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from metroplot.nextflow_io import from_nextflow
@@ -63,7 +65,7 @@ workflow {
     FEATURECOUNTS(STAR.out)
     RMATS(STAR.out)
     DESEQ2(FEATURECOUNTS.out)
-    MULTIQC(FASTQC.out)
+    MULTIQC(FASTQC.out, DESEQ2.out, RMATS.out)
 }
 """
 
@@ -74,6 +76,7 @@ with tempfile.TemporaryDirectory() as td:
         nf_dir,
         line_name="RNA-seq",
         color="#1f2a44",
+        background="#f5f6f8",
         column_spacing=2.5,
         branch_spacing=2.5,
         label_overrides={

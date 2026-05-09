@@ -65,6 +65,7 @@ with tempfile.TemporaryDirectory() as td:
         td,
         line_name="Bulk RNA-seq",
         color="#1f2a44",
+        background="#f5f6f8",
         column_spacing=2.5,
         branch_spacing=2.5,
         label_overrides={

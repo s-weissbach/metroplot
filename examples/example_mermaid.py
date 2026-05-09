@@ -30,6 +30,7 @@ d = from_mermaid(
     MERMAID,
     line_name="RNA-seq",
     color="#e8614a",
+    background="#f5f6f8",
     sub_overrides={
         "FASTQ":   "INPUT",
         "FASTQC":  "QC",

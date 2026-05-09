@@ -35,10 +35,19 @@ def parse_snakefile_text(text: str) -> list[dict]:
     return rules
 
 
+_SECTION_KEYWORDS = (
+    "input|output|params|log|benchmark|threads|resources|priority|"
+    "wildcard_constraints|run|shell|script|wrapper|conda|envmodules|"
+    "message|group|retries|default_target|localrule|ruleorder"
+)
+
+
 def _extract_paths(body: str, section: str) -> list[str]:
+    # Capture from "section:" to the next Snakemake section keyword or end.
+    # Handles both inline ("input: 'f'") and multi-line formats.
     pattern = re.compile(
-        rf"^[ \t]*{section}\s*:\s*\n((?:[ \t]+.*\n)+?)(?=^[ \t]*\w+\s*:|\Z)",
-        re.M,
+        rf"^[ \t]*{section}\s*:(.*?)(?=^[ \t]*(?:{_SECTION_KEYWORDS})\s*:|^rule\s|\Z)",
+        re.M | re.S,
     )
     m = pattern.search(body)
     if not m:
@@ -85,6 +94,7 @@ def from_snakemake(
     branch_spacing: float = 2.0,
     legend_loc: str | None = "upper right",
     theme: str = "light",
+    background: str | None = None,
 ) -> Diagram:
     """Parse a Snakemake workflow directory and return a Diagram."""
     rules = [r for r in parse_workflow(workflow_dir) if r["name"] not in set(skip_rules)]
@@ -99,4 +109,5 @@ def from_snakemake(
         label_overrides=label_overrides, sub_overrides=sub_overrides,
         lanes=lanes,
         theme=theme,
+        background=background,
     )

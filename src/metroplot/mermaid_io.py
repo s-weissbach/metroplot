@@ -111,6 +111,7 @@ def from_mermaid(
     branch_spacing: float = 2.0,
     legend_loc: str | None = "upper right",
     theme: str = "light",
+    background: str | None = None,
 ) -> Diagram:
     """Parse a Mermaid graph/flowchart string and return a metroplot Diagram.
 
@@ -153,6 +154,7 @@ def from_mermaid(
         sub_overrides=sub_overrides,
         lanes=lanes,
         theme=theme,
+        background=background,
     )
 
 
