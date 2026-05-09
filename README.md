@@ -131,12 +131,41 @@ metroplot snakemake path/to/workflow \
 
 ## Pipeline workflows
 
-metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Two formats are supported:
+metroplot ships with parsers that turn a workflow definition into a Diagram automatically. Three formats are supported:
 
+- **Mermaid** — `from metroplot import from_mermaid` parses a `graph` or `flowchart` string directly. Useful for quick prototyping or when your pipeline is already described in Mermaid.
 - **Snakemake** — `from metroplot.snakemake_io import from_snakemake` parses every `Snakefile` / `*.smk` under a directory, matches each rule's `output:` paths to downstream `input:` paths to derive the DAG.
 - **Nextflow (DSL2)** — `from metroplot.nextflow_io import from_nextflow` parses every `*.nf` file, finds `process NAME { … }` blocks, and extracts edges by reading `workflow { … }` blocks for invocations like `STAR(TRIM.out)`.
 
-Both share the same downstream layout/Diagram-builder (`metroplot._pipeline_layout`): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
+All three share the same downstream layout/Diagram-builder (`metroplot._pipeline_layout`): the longest source-to-sink path becomes the `y = 0` spine, off-spine rules drop below at `branch_spacing`, and every parameter (label overrides, sub-labels, lanes, colors, column spacing) is exposed as a kwarg.
+
+### Mermaid
+
+```python
+from metroplot import from_mermaid
+
+MERMAID = """
+flowchart LR
+    FASTQ[Raw Reads] --> QC[FastQC]
+    FASTQ            --> TRIM[Trim Galore]
+    TRIM             --> STAR[STAR] & HISAT2[HISAT2]
+    STAR & HISAT2    --> COUNTS[featureCounts]
+    COUNTS           --> DESEQ2[DESeq2]
+    HISAT2           --> BIGWIG[bigWig]
+"""
+
+d = from_mermaid(
+    MERMAID,
+    line_name="RNA-seq",
+    color="#e8614a",
+    sub_overrides={"DESEQ2": "DIFF EXPR", "BIGWIG": "COVERAGE"},
+)
+d.render()
+```
+
+Supported: `-->` / `---` edges, optional `|edge label|`, node labels in `[]` `()` `(())` `{}`, `&` for multiple sources/targets, chained arrows `A --> B --> C`, `%%` comments. Not supported: subgraphs, classDef/style directives.
+
+### Snakemake / Nextflow
 
 ```python
 from metroplot.snakemake_io import from_snakemake   # or: from metroplot.nextflow_io import from_nextflow
@@ -144,8 +173,8 @@ from metroplot.snakemake_io import from_snakemake   # or: from metroplot.nextflo
 d = from_snakemake(
     "path/to/workflow",
     line_name="My pipeline",
-    label_overrides={"run_method": "scanpy/Seurat"},     # snake_case rule name → display label
-    sub_overrides={"run_method": "ANNOTATION"},          # small uppercase line under each label
+    label_overrides={"run_method": "scanpy/Seurat"},
+    sub_overrides={"run_method": "ANNOTATION"},
     lanes={                                              # optional: split into multiple parallel lines
         "QC":   {"color": "#aaaaaa", "rules": ["FASTQC", "MULTIQC"]},
         "Main": {"color": "#1f2a44", "rules": ["FASTP", "STAR", "FEATURECOUNTS", "DESEQ2"]},
@@ -156,10 +185,11 @@ d.render()
 
 End-to-end demos:
 
+- Mermaid RNA-seq workflow → [examples/example_mermaid.py](examples/example_mermaid.py) → [graphics/mermaid_example.png](graphics/mermaid_example.png)
 - Snakemake on a real cell-type annotation benchmarking workflow → [examples/example_snakemake.py](examples/example_snakemake.py) → [graphics/snakemake_example.png](graphics/snakemake_example.png)
 - Nextflow on an nf-core-style RNA-seq pipeline → [examples/example_nextflow.py](examples/example_nextflow.py) → [graphics/nextflow_example.png](graphics/nextflow_example.png)
 
-Both parsers are best-effort regex-based and do not understand dynamic rules / checkpoint outputs (Snakemake) or subworkflow imports / channel operators like `map`, `branch`, `combine` (Nextflow). For anything they miss, override at the kwarg layer or pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
+Parsers are best-effort regex-based. For anything they miss, pass extra rules/edges into `metroplot._pipeline_layout.build_diagram_from_dag` directly.
 
 ## Concepts
 

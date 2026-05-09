@@ -28,7 +28,7 @@ theme = dataclasses.replace(
 )
 
 d = Diagram(theme=theme, legend_loc="lower right",
-            line_width=4.5, track_spacing=0.11, station_radius=0.24,
+            line_width=3.5, track_spacing=0.09, station_radius=0.21,
             station_interchange_rect=True,
             label_font=9, sub_font=7)
 

@@ -351,11 +351,11 @@ class Diagram:
         if is_interchange and self.station_interchange_rect:
             sdy_here = sum(line_offset[li] for li in slines) / len(slines)
             rel = [line_offset[li] - sdy_here for li in slines]
-            pad = radius
+            pad = radius * 0.45
             y_lo = cy + min(rel) - pad
             y_hi = cy + max(rel) + pad
             h = y_hi - y_lo
-            w = radius * 2
+            w = radius * 1.3
             r_box = min(w / 2, h / 2) * 0.98
             patch = FancyBboxPatch(
                 (s.x - w / 2 + r_box, y_lo + r_box),
