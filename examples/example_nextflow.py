@@ -1,106 +1,87 @@
-"""Example: parse a small nf-core-style Nextflow pipeline and render it.
+"""nf-core-style Nextflow pipeline → metroplot.
 
-The pipeline file is generated inline so the example is self-contained.
-It mirrors the structure of nf-core/rnaseq: FASTQC + trimming on the
-trunk, alignment, then a split into quantification (featureCounts) and
-alternative-splicing analysis (rMATS), merging into a multiqc report.
+Recommended workflow
+--------------------
+Generate the Mermaid DAG with Nextflow's built-in support (22.04+),
+then pass it to from_mermaid / from_mermaid_file:
+
+    nextflow run pipeline.nf -with-dag dag.mmd
+
+Then in Python:
+
+    from metroplot import from_mermaid_file
+    d = from_mermaid_file(
+        "dag.mmd",
+        skip_nodes=["p0"],          # drop Channel.fromPath source node
+        label_overrides=...,
+        sub_overrides=...,
+    )
+
+Nextflow uses sequential IDs (p0, p1, …) with bracket labels for each
+node.  Channel source nodes (((Channel.fromPath))) can be dropped with
+skip_nodes.
+
+The inline MERMAID string below is representative of what
+``nextflow run -with-dag dag.mmd`` produces and is used here so the
+example is self-contained.
 """
-from pathlib import Path
-import tempfile
+import sys
+sys.path.insert(0, "src")
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from metroplot.nextflow_io import from_nextflow
+from metroplot import from_mermaid
 
-PIPELINE = """\
-process FASTQC {
-    input:  path reads
-    output: path "*.html"
-    script: "fastqc $reads"
-}
-
-process FASTP {
-    input:  path reads
-    output: path "*.trim.fq.gz", emit: trimmed
-    script: "fastp -i $reads -o trim.fq.gz"
-}
-
-process STAR {
-    input:  path reads
-    output: path "*.bam", emit: bam
-    script: "STAR --readFilesIn $reads"
-}
-
-process FEATURECOUNTS {
-    input:  path bam
-    output: path "counts.tsv"
-    script: "featureCounts -a annotation.gtf -o counts.tsv $bam"
-}
-
-process RMATS {
-    input:  path bam
-    output: path "rmats_out/"
-    script: "rmats.py --b1 $bam --gtf annotation.gtf"
-}
-
-process DESEQ2 {
-    input:  path counts
-    output: path "deseq2_results.tsv"
-    script: "Rscript deseq2.R $counts"
-}
-
-process MULTIQC {
-    input:  path reports
-    output: path "multiqc_report.html"
-    script: "multiqc ."
-}
-
-workflow {
-    reads_ch = Channel.fromPath(params.reads)
-    FASTQC(reads_ch)
-    FASTP(reads_ch)
-    STAR(FASTP.out)
-    FEATURECOUNTS(STAR.out)
-    RMATS(STAR.out)
-    DESEQ2(FEATURECOUNTS.out)
-    MULTIQC(FASTQC.out, DESEQ2.out, RMATS.out)
-}
+# Equivalent of: nextflow run pipeline.nf -with-dag dag.mmd
+# (or: from metroplot import from_mermaid_file; d = from_mermaid_file("dag.mmd", ...))
+MERMAID = """
+flowchart TD
+    p0((Channel.fromPath))
+    p1[FASTQC]
+    p2[FASTP]
+    p3[STAR]
+    p4[FEATURECOUNTS]
+    p5[RMATS]
+    p6[DESEQ2]
+    p7[MULTIQC]
+    p0 --> p1
+    p0 --> p2
+    p2 --> p3
+    p3 --> p4
+    p3 --> p5
+    p4 --> p6
+    p1 --> p7
+    p6 --> p7
+    p5 --> p7
 """
 
-with tempfile.TemporaryDirectory() as td:
-    nf_dir = Path(td)
-    (nf_dir / "main.nf").write_text(PIPELINE)
-    d = from_nextflow(
-        nf_dir,
-        line_name="RNA-seq",
-        color="#1f2a44",
-        background="#f5f6f8",
-        column_spacing=2.5,
-        branch_spacing=2.5,
-        label_overrides={
-            "FASTQC": "FastQC",
-            "FASTP": "fastp",
-            "STAR": "STAR",
-            "FEATURECOUNTS": "featureCounts",
-            "RMATS": "rMATS",
-            "DESEQ2": "DESeq2",
-            "MULTIQC": "MultiQC",
-        },
-        sub_overrides={
-            "FASTQC": "QUALITY CONTROL",
-            "FASTP": "ADAPTER TRIMMING",
-            "STAR": "ALIGNMENT",
-            "FEATURECOUNTS": "QUANTIFICATION",
-            "RMATS": "ALT SPLICING",
-            "DESEQ2": "DIFFERENTIAL EXPR",
-            "MULTIQC": "REPORT",
-        },
-    )
+d = from_mermaid(
+    MERMAID,
+    skip_nodes=["p0"],          # drop the Channel.fromPath source node
+    line_name="RNA-seq",
+    color="#1f2a44",
+    background="#f5f6f8",
+    column_spacing=2.5,
+    branch_spacing=2.5,
+    # Nextflow bracket labels (FASTQC, FASTP, …) are used automatically;
+    # sub_overrides reference the p1/p2/… IDs from the Mermaid.
+    sub_overrides={
+        "p1": "QUALITY CONTROL",
+        "p2": "ADAPTER TRIMMING",
+        "p3": "ALIGNMENT",
+        "p4": "QUANTIFICATION",
+        "p5": "ALT SPLICING",
+        "p6": "DIFFERENTIAL EXPR",
+        "p7": "REPORT",
+    },
+    legend_loc=None,
+)
 
 fig, ax = plt.subplots(figsize=(15, 5))
 d.render(ax)
 plt.tight_layout()
 plt.savefig("graphics/nextflow_example.png", dpi=150, bbox_inches="tight")
+plt.close(fig)
 print("wrote graphics/nextflow_example.png")

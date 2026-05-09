@@ -29,7 +29,7 @@ from __future__ import annotations
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from metroplot._core import Diagram
 from metroplot._pipeline_layout import build_diagram_from_dag
@@ -105,6 +105,7 @@ def parse_mermaid_text(
 def from_mermaid(
     mermaid_text: str,
     *,
+    skip_nodes: "Iterable[str]" = (),
     label_overrides: Mapping[str, str] | None = None,
     sub_overrides: Mapping[str, str] | None = None,
     lanes: Mapping[str, Mapping] | None = None,
@@ -122,6 +123,9 @@ def from_mermaid(
     ----------
     mermaid_text:
         Raw Mermaid ``graph`` or ``flowchart`` source (as a string).
+    skip_nodes:
+        Node IDs to drop before layout.  Useful for removing pure channel /
+        operator nodes from Nextflow ``-with-dag`` output (e.g. ``["p0"]``).
     label_overrides:
         ``node_id -> display label`` — overrides the in-graph bracket label.
     sub_overrides:
@@ -137,10 +141,18 @@ def from_mermaid(
         Matplotlib legend location string, or ``None`` to hide the legend.
     theme:
         Theme name (``"light"``, ``"dark"``, ``"minimal"``) or a Theme object.
+    background:
+        Background colour string (e.g. ``"#f5f6f8"``).  Overrides the theme's
+        default transparent background.
     """
     rules, deps = parse_mermaid_text(mermaid_text)
     if not rules:
         raise ValueError("no nodes found in Mermaid graph")
+
+    skip = set(skip_nodes)
+    rules = [r for r in rules if r["name"] not in skip]
+    deps = {u: {c for c in cs if c not in skip}
+            for u, cs in deps.items() if u not in skip}
 
     # Mermaid bracket labels are merged into label_overrides; explicit
     # overrides take priority.
