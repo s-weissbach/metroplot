@@ -386,7 +386,6 @@ class Diagram:
             patch.set_gid(f"metro-station-{s.name}")
             ax.add_patch(patch)
             return  # pill replaces both outer ring and inner dot
-            return  # pill replaces both outer ring and inner dot
 
         outer = Circle(
             (s.x, cy), radius,
