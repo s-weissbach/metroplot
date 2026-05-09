@@ -59,19 +59,19 @@ class _SectionSpec:
 
 @dataclass
 class Diagram:
-    track_spacing: float = 0.20
-    station_radius: float = 0.22
+    track_spacing: float = 0.09
+    station_radius: float = 0.21
     station_linewidth: float = 2.5
-    line_width: float = 6.0
+    line_width: float = 4.0
     corner_radius: float = 0.20
-    label_font: int = 11
-    sub_font: int = 8
+    label_font: int = 9
+    sub_font: int = 7
     label_dy_main: float = 0.38
     label_dy_sub: float = 0.20
     legend_loc: str | None = None
     legend_font: int = 10
     auto_bend: bool = True
-    station_interchange_rect: bool = False
+    station_interchange_rect: bool = True
     theme: str | Theme = "light"
     stations: dict = field(default_factory=dict)
     lines: list = field(default_factory=list)

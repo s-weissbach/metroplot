@@ -1,4 +1,4 @@
-"""Bulk RNA-seq Snakemake workflow → metroplot.
+"""WGS variant-calling Snakemake workflow → metroplot.
 
 Recommended workflow
 --------------------
@@ -32,47 +32,42 @@ from metroplot import from_mermaid
 # (or: from metroplot import from_mermaid_file; d = from_mermaid_file("dag.mmd", ...))
 MERMAID = """
 flowchart LR
-    trim_galore --> fastqc_trim
-    trim_galore --> star_align
-    star_align --> samtools_sort
-    samtools_sort --> featurecounts
-    featurecounts --> deseq2
-    fastqc_raw --> multiqc
-    fastqc_trim --> multiqc
-    deseq2 --> multiqc
+    fastqc --> trimmomatic
+    trimmomatic --> bwa_mem
+    bwa_mem --> samtools_sort
+    samtools_sort --> mark_duplicates
+    mark_duplicates --> haplotype_caller
+    haplotype_caller --> snpeff
 """
 
 d = from_mermaid(
     MERMAID,
-    line_name="Bulk RNA-seq",
+    line_name="WGS Variant Calling",
     color="#1f2a44",
     background="#f5f6f8",
     column_spacing=2.5,
-    branch_spacing=2.5,
     label_overrides={
-        "fastqc_raw":    "FastQC",
-        "trim_galore":   "Trim Galore",
-        "fastqc_trim":   "FastQC",
-        "star_align":    "STAR",
-        "samtools_sort": "SAMtools",
-        "featurecounts": "featureCounts",
-        "deseq2":        "DESeq2",
-        "multiqc":       "MultiQC",
+        "fastqc":           "FastQC",
+        "trimmomatic":      "Trimmomatic",
+        "bwa_mem":          "BWA MEM",
+        "samtools_sort":    "SAMtools",
+        "mark_duplicates":  "Picard",
+        "haplotype_caller": "GATK",
+        "snpeff":           "SnpEff",
     },
     sub_overrides={
-        "fastqc_raw":    "RAW QC",
-        "trim_galore":   "TRIMMING",
-        "fastqc_trim":   "TRIM QC",
-        "star_align":    "ALIGNMENT",
-        "samtools_sort": "SORT/INDEX",
-        "featurecounts": "QUANTIFY",
-        "deseq2":        "DIFF EXPR",
-        "multiqc":       "REPORT",
+        "fastqc":           "QUALITY CONTROL",
+        "trimmomatic":      "TRIMMING",
+        "bwa_mem":          "ALIGNMENT",
+        "samtools_sort":    "SORT & INDEX",
+        "mark_duplicates":  "MARK DUPLICATES",
+        "haplotype_caller": "VARIANT CALLING",
+        "snpeff":           "ANNOTATION",
     },
     legend_loc=None,
 )
 
-fig, ax = plt.subplots(figsize=(18, 5))
+fig, ax = plt.subplots(figsize=(16, 3))
 d.render(ax)
 fig.savefig("graphics/snakemake_example.png", dpi=150, bbox_inches="tight")
 plt.close(fig)

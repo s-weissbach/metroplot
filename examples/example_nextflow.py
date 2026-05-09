@@ -1,4 +1,4 @@
-"""nf-core-style Nextflow pipeline → metroplot.
+"""ChIP-seq Nextflow pipeline → metroplot.
 
 Recommended workflow
 --------------------
@@ -40,48 +40,51 @@ MERMAID = """
 flowchart TD
     p0((Channel.fromPath))
     p1[FASTQC]
-    p2[FASTP]
-    p3[STAR]
-    p4[FEATURECOUNTS]
-    p5[RMATS]
-    p6[DESEQ2]
-    p7[MULTIQC]
+    p2[TRIM_GALORE]
+    p3[BOWTIE2]
+    p4[SAMTOOLS_SORT]
+    p5[PICARD_DEDUP]
+    p6[MACS2]
+    p7[DEEPTOOLS]
     p0 --> p1
-    p0 --> p2
+    p1 --> p2
     p2 --> p3
     p3 --> p4
-    p3 --> p5
-    p4 --> p6
-    p1 --> p7
+    p4 --> p5
+    p5 --> p6
     p6 --> p7
-    p5 --> p7
 """
 
 d = from_mermaid(
     MERMAID,
     skip_nodes=["p0"],          # drop the Channel.fromPath source node
-    line_name="RNA-seq",
+    line_name="ChIP-seq",
     color="#1f2a44",
     background="#f5f6f8",
     column_spacing=2.5,
-    branch_spacing=2.5,
-    # Nextflow bracket labels (FASTQC, FASTP, …) are used automatically;
-    # sub_overrides reference the p1/p2/… IDs from the Mermaid.
+    # Bracket labels (FASTQC, TRIM_GALORE, …) become display names automatically.
+    # label_overrides uses the p1/p2/... IDs to further rename if needed:
+    label_overrides={
+        "p2": "Trim Galore",
+        "p3": "Bowtie2",
+        "p4": "SAMtools",
+        "p5": "Picard",
+        "p7": "deepTools",
+    },
     sub_overrides={
         "p1": "QUALITY CONTROL",
-        "p2": "ADAPTER TRIMMING",
+        "p2": "TRIMMING",
         "p3": "ALIGNMENT",
-        "p4": "QUANTIFICATION",
-        "p5": "ALT SPLICING",
-        "p6": "DIFFERENTIAL EXPR",
-        "p7": "REPORT",
+        "p4": "SORT & INDEX",
+        "p5": "DEDUPLICATION",
+        "p6": "PEAK CALLING",
+        "p7": "COVERAGE",
     },
     legend_loc=None,
 )
 
-fig, ax = plt.subplots(figsize=(15, 5))
+fig, ax = plt.subplots(figsize=(16, 3))
 d.render(ax)
-plt.tight_layout()
-plt.savefig("graphics/nextflow_example.png", dpi=150, bbox_inches="tight")
+fig.savefig("graphics/nextflow_example.png", dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("wrote graphics/nextflow_example.png")

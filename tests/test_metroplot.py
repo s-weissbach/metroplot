@@ -32,9 +32,9 @@ def test_render_creates_one_circle_per_station():
     d = _basic().line("main", "#111", [["a", "b", "c"]])
     ax = d.render()
     circles = [p for p in ax.patches if isinstance(p, Circle)]
-    # Each station gets an outer ring + inner dot (default "light" theme), so 2 per station.
+    # Default light theme: station_dot=False, so one circle per station.
     n_stations = len(d.stations)
-    assert len(circles) == n_stations * 2
+    assert len(circles) == n_stations
     plt.close("all")
 
 
@@ -104,7 +104,8 @@ def test_close_stations_warn():
 def test_station_radius_auto_grows_for_many_lines():
     """With many parallel lines, the rendered circle should be bigger than
     the user-specified station_radius so line endpoints stay hidden."""
-    d = Diagram(station_radius=0.10, track_spacing=0.20)
+    # station_interchange_rect=False forces circles so we can read the radius.
+    d = Diagram(station_radius=0.10, track_spacing=0.20, station_interchange_rect=False)
     d.station("a", 0, 0).station("b", 5, 0)
     for i in range(5):
         d.line(f"L{i}", "#000", [["a", "b"]])
