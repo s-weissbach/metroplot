@@ -69,7 +69,7 @@ def build_diagram_from_dag(
         label = label_overrides.get(r["name"], r["name"].replace("_", " "))
         sub = sub_overrides.get(r["name"], "")
         d.station(r["name"], x, y, label, sub,
-                  label_pos="above" if y >= 0 else "below")
+                  label_pos=_dodge_label_pos(r["name"], positions, deps, incoming))
 
     if lanes:
         for lane_label, lane_def in lanes.items():
@@ -191,3 +191,39 @@ def _restrict_paths(paths: list[list[str]], allowed: set[str]) -> list[list[str]
             seen.add(t)
             unique.append(r)
     return unique
+
+
+def _dodge_label_pos(name: str, positions: dict, deps: dict, incoming: dict) -> str:
+    """Pick 'above' or 'below' so the label doesn't sit inside a track segment.
+
+    With the direction-aware auto_bend, forward edges (parent.x < station.x)
+    always use HV, placing their vertical leg at the *current* station's x.
+    If that parent is above the station the segment occupies the 'above' region;
+    if below it occupies the 'below' region.  Back-edges (child.x < station.x,
+    rare in a DAG) use VH, so their vertical leg is also at the current x.
+    Rightward outgoing edges have their vertical leg at the *child's* x and
+    don't affect the current station's label area.
+    """
+    x, y = positions[name]
+    above_blocked = below_blocked = False
+
+    for parent in incoming.get(name, set()):
+        py = positions[parent][1]
+        if py > y:
+            above_blocked = True
+        elif py < y:
+            below_blocked = True
+
+    for child in deps.get(name, set()):
+        cx, cy = positions[child]
+        if cx < x:  # back-edge: VH, vertical leg at current x
+            if cy > y:
+                above_blocked = True
+            elif cy < y:
+                below_blocked = True
+
+    if above_blocked and not below_blocked:
+        return "below"
+    if below_blocked and not above_blocked:
+        return "above"
+    return "above" if y >= 0 else "below"
