@@ -475,7 +475,13 @@ class Diagram:
             return "vh"
         if vh_blocked and not hv_blocked:
             return "hv"
-        return user_bend
+        # Both options clear.  Respect an explicit "vh" from the caller;
+        # for the default "hv" apply direction-aware logic: going left
+        # (return legs) → VH so the source bends immediately and the
+        # return run is a clean horizontal.  Going right (forward) → HV.
+        if user_bend == "vh":
+            return "vh"
+        return "vh" if x2 < x1 else "hv"
 
     def _validate_layout(self, station_dy, radius):
         """Raise on stations sharing exact coordinates; warn when stations
