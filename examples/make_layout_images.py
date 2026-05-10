@@ -31,26 +31,20 @@ print("wrote graphics/layout_linear.png")
 
 # ── 2. Parallel lanes ────────────────────────────────────────────────────────
 d = Diagram(line_width=5, label_font=9, sub_font=7)
-# Shared trunk
 d.station("fastq", 0, 0, "FASTQ",      "RAW READS",   "above")
 d.station("trim",  2, 0, "Trim Galore","TRIMMING",     "above")
-# Bulk lane
 d.station("star",  4,  2, "STAR",       "ALIGNMENT",   "above")
 d.station("fc",    6,  2, "featureCounts","QUANTIFY")
 d.station("de",    8,  2, "DESeq2",     "DIFF EXPR")
-# scRNA lane
 d.station("cr",    4,  0, "Cellranger", "ALIGNMENT",   "above")
 d.station("sc",    6,  0, "Scanpy",     "CLUSTERING",  "above")
 d.station("mk",    8,  0, "Markers",    "ANNOTATION",  "above")
-# ATAC lane
 d.station("bw",    4, -2, "Bowtie2",   "ALIGNMENT",   "below")
 d.station("mc",    6, -2, "MACS2",     "PEAK CALLING","below")
 d.station("hm",    8, -2, "HOMER",     "MOTIF ENRICH","below")
-
 d.line("Bulk RNA-seq", NAVY,  [["fastq", "trim", "star", "fc", "de"]])
 d.line("scRNA-seq",    CORAL, [["fastq", "trim", "cr",   "sc", "mk"]])
 d.line("ATAC-seq",     BLUE,  [["fastq", "trim", "bw",   "mc", "hm"]])
-
 fig, ax = plt.subplots(figsize=(12, 5))
 d.render(ax)
 plt.tight_layout()
@@ -61,24 +55,74 @@ print("wrote graphics/layout_parallel.png")
 
 # ── 3. Loop-back ─────────────────────────────────────────────────────────────
 d = Diagram(line_width=5, label_font=9, sub_font=7, legend_loc="lower right")
-# Forward trunk (y=0, left → right)
 d.station("raw",    0, 0, "FASTQ",         "RAW READS",      "above")
 d.station("trim",   3, 0, "Trim Galore",   "TRIMMING",       "above")
 d.station("align",  6, 0, "STAR",          "ALIGNMENT",      "above")
-# Upper return (y=2, right → left)
 d.station("rmats",  6, 2, "rMATS",         "ALT SPLICING",   "above")
 d.station("maser",  3, 2, "MASER",         "SPLICING VIZ",   "above")
-# Middle return (y=4, right → left)
 d.station("quant",  6, 4, "featureCounts", "QUANTIFICATION", "above")
 d.station("de",     3, 4, "DESeq2",        "DIFF EXPR",      "above")
 d.station("enrich", 0, 4, "clusterProfiler","ENRICHMENT",    "above")
-
 d.line("Alt Splicing",  TEAL,  [["raw", "trim", "align", "rmats", "maser"]])
 d.line("Bulk RNA-seq",  CORAL, [["raw", "trim", "align", "quant", "de", "enrich"]])
-
 fig, ax = plt.subplots(figsize=(10, 5))
 d.render(ax)
 plt.tight_layout()
 plt.savefig("graphics/layout_return.png", dpi=150, bbox_inches="tight")
 plt.close(fig)
 print("wrote graphics/layout_return.png")
+
+
+# ── 4. Wide fan-out ──────────────────────────────────────────────────────────
+d = Diagram(line_width=5, label_font=9, sub_font=7, auto_bend=False)
+d.station("input", 0, 0, "FASTQ", "RAW READS", "above")
+d.station("hub",   2, 0, "fastp", "TRIMMING",   "left")
+branches = [
+    ("rna",   "Bulk RNA-seq", "DEG ANALYSIS",  2.5),
+    ("scrna", "scRNA-seq",    "CELL ATLAS",    1.5),
+    ("atac",  "ATAC-seq",     "CHROMATIN",     0.5),
+    ("chip",  "ChIP-seq",     "BINDING SITES",-0.5),
+    ("meth",  "RRBS",         "METHYLATION",  -1.5),
+    ("hic",   "Hi-C",         "3D GENOME",    -2.5),
+]
+routes = []
+for name, label, sub, y in branches:
+    d.station(name, 6, y, label, sub, "right")
+    routes.append(["input", "hub", name])
+d.line("Multi-omics", CORAL, routes, bend="vh")
+fig, ax = plt.subplots(figsize=(9, 7))
+d.render(ax)
+plt.tight_layout()
+plt.savefig("graphics/layout_fanout.png", dpi=150, bbox_inches="tight")
+plt.close(fig)
+print("wrote graphics/layout_fanout.png")
+
+
+# ── 5. Serpentine ────────────────────────────────────────────────────────────
+d = Diagram(line_width=5, label_font=9, sub_font=7)
+# Row 0 — left → right (y=0)
+d.station("s00", 0, 0, "FASTQ",        "RAW READS",   "above")
+d.station("s01", 3, 0, "Trim Galore",  "TRIMMING",    "above")
+d.station("s02", 6, 0, "STAR",         "ALIGNMENT",   "above")
+d.station("s03", 9, 0, "UMI-tools",    "DEDUP",       "right")
+# Row 1 — right → left (y=2)
+d.station("s10", 9, 2, "featureCounts","QUANTIFY",    "right")
+d.station("s11", 6, 2, "DESeq2",       "DIFF EXPR",   "above")
+d.station("s12", 3, 2, "fgsea",        "ENRICHMENT",  "above")
+d.station("s13", 0, 2, "clusterProfiler","PATHWAYS",  "left")
+# Row 2 — left → right (y=4)
+d.station("s20", 0, 4, "MultiQC",      "QC REPORT",   "above")
+d.station("s21", 3, 4, "Volcano",      "DE PLOTS",    "above")
+d.station("s22", 6, 4, "Heatmap",      "EXPRESSION",  "above")
+d.station("s23", 9, 4, "Quarto",       "FINAL REPORT","above")
+d.line("RNA-seq", CORAL, [[
+    "s00","s01","s02","s03",
+    "s10","s11","s12","s13",
+    "s20","s21","s22","s23",
+]])
+fig, ax = plt.subplots(figsize=(12, 6))
+d.render(ax)
+plt.tight_layout()
+plt.savefig("graphics/layout_serpentine.png", dpi=150, bbox_inches="tight")
+plt.close(fig)
+print("wrote graphics/layout_serpentine.png")
