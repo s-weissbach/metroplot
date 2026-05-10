@@ -7,14 +7,13 @@ Built-in presets:  "light", "dark", "minimal"
 
 City themes (pass by name to ``Diagram(theme="london")`` etc.):
     "london"    London Underground — white bg, near-black labels, TfL colours
-    "tokyo"     Tokyo Metro — white bg, dark navy labels, vivid line colours
     "nyc"       NYC Subway — white bg, pure black labels, MTA colours
     "paris"     Paris Métro — warm cream bg, warm dark labels, RATP colours
     "berlin"    Berlin U-Bahn/S-Bahn — light grey bg, neutral labels, BVG colours
     "hongkong"  Hong Kong MTR — white bg, corporate navy labels, MTR colours
 
 Raw palettes (colours only, no styling):
-    PALETTES["london"], PALETTES["tokyo"], PALETTES["nyc"],
+    PALETTES["london"], PALETTES["nyc"],
     PALETTES["paris"], PALETTES["berlin"], PALETTES["hongkong"]
 
 Add your own theme:
@@ -57,23 +56,6 @@ PALETTES: dict[str, list[str]] = {
         "#6ECEB2",  # Waterloo & City
         "#00A4A7",  # DLR
         "#EE7C0E",  # Overground
-    ],
-
-    # Tokyo Metro + Toei Subway (official line colours)
-    "tokyo": [
-        "#FF9500",  # Ginza (G)
-        "#F62E36",  # Marunouchi (M)
-        "#009BBF",  # Tozai (T)
-        "#00BB85",  # Chiyoda (C)
-        "#8F76D6",  # Hanzomon (Z)
-        "#EC6E65",  # Asakusa (A)
-        "#006CB6",  # Mita (I)
-        "#CE045B",  # Oedo (E)
-        "#B5B5AC",  # Hibiya (H)
-        "#C1A470",  # Yurakucho (Y)
-        "#00AC9B",  # Namboku (N)
-        "#9C5E31",  # Fukutoshin (F)
-        "#B0C124",  # Shinjuku (S)
     ],
 
     # NYC Subway (MTA official colours)
@@ -186,7 +168,9 @@ class Theme:
     station_interchange_style: str = "pill"
     # "pill"          — single rounded rect spanning all track offsets (default)
     # "pill_count"    — pill sized by n_lines × circle diameter (Paris)
-    # "connected"     — full circles at each track + thin connecting bar (London)
+    # "circle"        — single centered circle, same as a single-line station (London)
+    # "circles"       — one plain circle per track, no connecting bar
+    # "connected"     — full circles at each track + thin connecting bar
     # "grouped"       — individual stations inside a white rounded-rect border (NYC)
     # "grouped_no_fill" — individual stations inside a transparent rounded-rect border (Tokyo)
     # "merged"        — overlapping circles at each track position (Hong Kong)
@@ -301,12 +285,12 @@ MINIMAL = Theme(
 # to more closely match the reference system's visual weight.
 
 # London Underground
-# Single: small white circles, black outline. Interchange: circles connected by thin bar.
+# All stations: single centered white circle with black outline.
 LONDON = Theme(
     name="london",
     background="white",
     station_style="circle",
-    station_interchange_style="connected",
+    station_interchange_style="circle",
     station_fill="white",
     station_interchange_fill="white",
     station_interchange_edge="#000000",
@@ -325,32 +309,6 @@ LONDON = Theme(
     section_label_font=9,
     section_corner_radius=0.30,
     palette=list(PALETTES["london"]),
-)
-
-# Tokyo Metro
-# Single: rounded rect, white fill, outline in line colour. Interchange: transparent grouped rect.
-TOKYO = Theme(
-    name="tokyo",
-    background="white",
-    station_style="rect",
-    station_interchange_style="grouped_no_fill",
-    station_fill="white",
-    station_interchange_fill="none",
-    station_interchange_edge="#000000",
-    station_edge="#000000",
-    station_edge_width=2.0,
-    station_dot=False,
-    station_colored_edge=True,
-    label_color="#1a1a2e",
-    sub_color="#5a6a7a",
-    glow=False,
-    section_fill="#f0f4f8",
-    section_edge="#c8d4e0",
-    section_edge_width=0.8,
-    section_label_color="#5a6a7a",
-    section_label_font=9,
-    section_corner_radius=0.25,
-    palette=list(PALETTES["tokyo"]),
 )
 
 # NYC Subway
@@ -463,7 +421,6 @@ THEMES: dict[str, Theme] = {
     "dark":     DARK,
     "minimal":  MINIMAL,
     "london":   LONDON,
-    "tokyo":    TOKYO,
     "nyc":      NYC,
     "paris":    PARIS,
     "berlin":   BERLIN,

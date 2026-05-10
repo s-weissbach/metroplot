@@ -60,7 +60,6 @@ make_showcase("minimal", "graphics/theme_minimal.png")
 
 # City themes — line_width and corner_radius tuned per system
 make_showcase("london",   "graphics/theme_london.png",   line_width=6, corner_radius=0.25)
-make_showcase("tokyo",    "graphics/theme_tokyo.png",    line_width=5, corner_radius=0.20)
 make_showcase("nyc",      "graphics/theme_nyc.png",      line_width=7, corner_radius=0.12)
 make_showcase("paris",    "graphics/theme_paris.png",    line_width=5, corner_radius=0.22)
 make_showcase("berlin",   "graphics/theme_berlin.png",   line_width=5, corner_radius=0.18)
