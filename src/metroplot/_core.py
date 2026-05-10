@@ -80,6 +80,21 @@ class Diagram:
 
     def station(self, name, x, y, label="", sub="", label_pos="above",
                 label_dx=0.0, label_dy=0.0):
+        """Add a station (node) to the diagram.
+
+        Args:
+            name: Unique identifier used to reference this station in ``line()``.
+            x: Grid column (integer or float, increasing left-to-right).
+            y: Grid row (integer or float, increasing bottom-to-top).
+            label: Primary label rendered in bold above/beside the station.
+            sub: Secondary label rendered in a smaller font below ``label``.
+            label_pos: Label placement — ``"above"``, ``"below"``, ``"left"``, or ``"right"``.
+            label_dx: Horizontal nudge applied to the label in data units.
+            label_dy: Vertical nudge applied to the label in data units.
+
+        Returns:
+            ``self``, so calls can be chained.
+        """
         self.stations[name] = Station(name, x, y, label, sub, label_pos,
                                       label_dx, label_dy)
         return self
@@ -89,9 +104,24 @@ class Diagram:
                 label_pos="top-middle", label_rotation=0.0):
         """Add a labelled grouping box around a set of stations.
 
-        Provide either:
-        - ``stations=[...]`` to auto-compute bounds from named stations, or
-        - explicit ``x, y, width, height`` to place the box manually.
+        Provide either ``stations=[...]`` to auto-compute bounds, or explicit
+        ``x, y, width, height`` to place the box manually.
+
+        Args:
+            label: Primary text displayed on the box border.
+            stations: List of station names whose bounding box defines the section.
+            x: Manual left edge in data units (required when ``stations`` is omitted).
+            y: Manual bottom edge in data units (required when ``stations`` is omitted).
+            width: Box width in data units (required when ``stations`` is omitted).
+            height: Box height in data units (required when ``stations`` is omitted).
+            sub: Secondary label rendered below ``label`` in a smaller font.
+            padding: Extra space added around the station bounding box in data units.
+            label_pos: Position of the label on the box edge — ``"top-left"``,
+                ``"top-middle"``, ``"top-right"``, ``"bottom-*"``, ``"left"``, or ``"right"``.
+            label_rotation: Rotation angle of the label in degrees.
+
+        Returns:
+            ``self``, so calls can be chained.
         """
         if stations is None and any(v is None for v in (x, y, width, height)):
             raise ValueError(
@@ -108,6 +138,25 @@ class Diagram:
         return self
 
     def line(self, name, color, routes, bend="hv", edge_labels=None):
+        """Add a metro line connecting an ordered sequence of stations.
+
+        Args:
+            name: Display name shown in the legend.
+            color: Matplotlib color string (hex, named, etc.) for the track and legend swatch.
+            routes: A list of routes, where each route is a list of station names in
+                traversal order.  A single route may be passed as a plain list —
+                e.g. ``[["a", "b", "c"]]``.  Multiple routes share the line color and
+                encode a split/merge at the station where they diverge or meet.
+            bend: Corner style — ``"hv"`` (horizontal then vertical) or ``"vh"``
+                (vertical then horizontal) for diagonal segments.  Pass a list to set a
+                different style per route.
+            edge_labels: Optional dict mapping ``(station_a, station_b)`` pairs to label
+                strings rendered alongside that segment.  Only supported on straight
+                (axis-aligned) segments.
+
+        Returns:
+            ``self``, so calls can be chained.
+        """
         rl = [list(r) for r in routes]
         if isinstance(bend, str):
             bends = [bend] * len(rl)
@@ -118,6 +167,15 @@ class Diagram:
         return self
 
     def render(self, ax=None):
+        """Draw the diagram onto a matplotlib axes.
+
+        Args:
+            ax: An existing ``matplotlib.axes.Axes`` to draw on.  If ``None``,
+                a new figure and axes are created automatically.
+
+        Returns:
+            The ``Axes`` instance that was drawn on.
+        """
         th = get_theme(self.theme)
 
         if ax is None:
