@@ -9,7 +9,7 @@
 Subway-style pipeline diagrams for matplotlib. Define stations on a grid and lines that connect them; the renderer handles right-angle routing, parallel-track offsets where lines share segments, and station labels.
 
 <p align="center">
-  <img src="graphics/example_animated.svg" alt="animated metroplot example" width="100%"/>
+  <img src="graphics/example_edge_labels_animated.svg" alt="metroplot example with edge labels" width="100%"/>
 </p>
 
 
@@ -111,6 +111,97 @@ plt.close(fig)
 - **Line** — a colored route, owning one or more `routes` (lists of station names). Splits are implicit: two routes that share a station diverge there.
 - **Shared segments** — when multiple lines traverse the same `(a, b)` segment, they're auto-offset perpendicular to the segment so they render as parallel tracks.
 - **Bends** — non-collinear hops use an L-shape. Per-line `bend="hv"` (horizontal then vertical, default) or `"vh"`.
+
+## Edge labels
+
+Label individual segments with the data format flowing through them. The track is interrupted at the midpoint, the text matches the line colour, and its height equals the line width.
+
+```python
+d.line("Bulk RNA-seq", NAVY, [["fastq", "fastp", "star", "fcounts", "deseq2"]], edge_labels={
+    ("fastq",   "fastp"):   "fastq",
+    ("star",    "fcounts"): "BAM",
+    ("fcounts", "deseq2"):  "counts",
+})
+```
+
+Annotate a segment on **every line that carries it, or on none** — keep labels consistent across parallel tracks.
+
+## Layout patterns
+
+### Linear
+
+The simplest layout — a single line of stations left to right.
+
+<p align="center">
+  <img src="graphics/layout_linear.png" alt="linear layout" width="100%"/>
+</p>
+
+```python
+d = Diagram()
+d.station("raw",   0, 0, "FASTQ",         "RAW READS")
+d.station("qc",    2, 0, "FastQC",        "QUALITY CTRL")
+d.station("trim",  4, 0, "Trim Galore",   "TRIMMING")
+d.station("align", 6, 0, "STAR",          "ALIGNMENT")
+d.station("quant", 8, 0, "featureCounts", "QUANTIFICATION")
+d.station("de",   10, 0, "DESeq2",        "DIFF EXPR")
+d.line("RNA-seq", "#e8614a", [["raw", "qc", "trim", "align", "quant", "de"]])
+```
+
+---
+
+### Parallel lanes
+
+A shared trunk forks into independent assay-specific lanes at different y-coordinates.
+
+<p align="center">
+  <img src="graphics/layout_parallel.png" alt="parallel lanes layout" width="100%"/>
+</p>
+
+```python
+# Shared input stations at y=0
+d.station("fastq", 0, 0, ...)
+d.station("trim",  2, 0, ...)
+
+# Assay-specific stations — one y-level per assay
+d.station("star", 4,  2, ...)   # Bulk RNA-seq lane (top)
+d.station("cr",   4,  0, ...)   # scRNA-seq lane (middle)
+d.station("bw",   4, -2, ...)   # ATAC-seq lane (bottom)
+
+# One line per assay; shared stations appear on all lines
+d.line("Bulk RNA-seq", NAVY,  [["fastq", "trim", "star", ...]])
+d.line("scRNA-seq",    CORAL, [["fastq", "trim", "cr",   ...]])
+d.line("ATAC-seq",     BLUE,  [["fastq", "trim", "bw",   ...]])
+```
+
+---
+
+### Loop-back
+
+Lines travel right along the bottom row, bend at a shared alignment step, then return left on separate upper rows — one row per downstream branch.
+
+<p align="center">
+  <img src="graphics/layout_return.png" alt="loop-back layout" width="100%"/>
+</p>
+
+```python
+# Forward trunk at y=0
+d.station("raw",   0, 0, "FASTQ",       "RAW READS")
+d.station("trim",  3, 0, "Trim Galore", "TRIMMING")
+d.station("star",  6, 0, "STAR",        "ALIGNMENT")   # bend point
+
+# Return rows — each branch at its own y, going right → left
+d.station("rmats", 6, 2, "rMATS",  "ALT SPLICING")    # y=2 branch
+d.station("maser", 3, 2, "MASER",  "SPLICING VIZ")
+
+d.station("quant", 6, 4, "featureCounts", "QUANTIFY")  # y=4 branch
+d.station("de",    3, 4, "DESeq2",        "DIFF EXPR")
+d.station("enrich",0, 4, "clusterProfiler","ENRICHMENT")
+
+d.line("Alt Splicing", TEAL,  [["raw", "trim", "star", "rmats", "maser"]])
+d.line("Bulk RNA-seq", CORAL, [["raw", "trim", "star", "quant", "de", "enrich"]])
+```
+
+---
 
 ## Themes
 
