@@ -5,8 +5,13 @@ into any document, slide, or web page regardless of its background colour.
 
 Built-in presets:  "light", "dark", "minimal"
 
-The default colour palette is:
-    PALETTES["default"] = ["#e63946", "#a8dadc", "#457b9d", "#1d3557"]
+City palettes (pass to ``Theme(palette=PALETTES["london"])`` etc.):
+    "london"    London Underground (TfL official colours)
+    "tokyo"     Tokyo Metro + Toei Subway
+    "nyc"       NYC Subway (MTA official colours)
+    "paris"     Paris Métro (RATP official colours)
+    "berlin"    Berlin U-Bahn + S-Bahn (BVG official colours)
+    "hongkong"  Hong Kong MTR
 
 Add your own theme:
     from metroplot.themes import Theme, THEMES
@@ -31,6 +36,108 @@ PALETTES: dict[str, list[str]] = {
     "default": ["#e63946", "#457b9d", "#a8dadc", "#1d3557"],
     # metroplot logo orange (coral) — use as a highlight or primary accent
     "logo_orange": ["#e8614a", "#457b9d", "#a8dadc", "#1d3557"],
+
+    # London Underground (TfL official colours)
+    "london": [
+        "#DA291C",  # Central
+        "#10069F",  # Piccadilly
+        "#007A33",  # District
+        "#6950A1",  # Elizabeth
+        "#A45A2A",  # Bakerloo
+        "#FFCD00",  # Circle
+        "#00A3E0",  # Victoria
+        "#7C878E",  # Jubilee
+        "#840B55",  # Metropolitan
+        "#E89CAE",  # Hammersmith & City
+        "#000000",  # Northern
+        "#6ECEB2",  # Waterloo & City
+        "#00A4A7",  # DLR
+        "#EE7C0E",  # Overground
+    ],
+
+    # Tokyo Metro + Toei Subway (official line colours)
+    "tokyo": [
+        "#FF9500",  # Ginza (G)
+        "#F62E36",  # Marunouchi (M)
+        "#009BBF",  # Tozai (T)
+        "#00BB85",  # Chiyoda (C)
+        "#8F76D6",  # Hanzomon (Z)
+        "#EC6E65",  # Asakusa (A)
+        "#006CB6",  # Mita (I)
+        "#CE045B",  # Oedo (E)
+        "#B5B5AC",  # Hibiya (H)
+        "#C1A470",  # Yurakucho (Y)
+        "#00AC9B",  # Namboku (N)
+        "#9C5E31",  # Fukutoshin (F)
+        "#B0C124",  # Shinjuku (S)
+    ],
+
+    # NYC Subway (MTA official colours)
+    "nyc": [
+        "#EE352E",  # 1/2/3
+        "#00933C",  # 4/5/6
+        "#B933AD",  # 7
+        "#2850AD",  # A/C/E
+        "#FF6319",  # B/D/F/M
+        "#6CBE45",  # G
+        "#FCCC0A",  # N/Q/R/W
+        "#996633",  # J/Z
+        "#A7A9AC",  # L
+        "#808183",  # S
+    ],
+
+    # Paris Métro (RATP official colours)
+    "paris": [
+        "#FFBE02",  # M1
+        "#006CB8",  # M2
+        "#A0006E",  # M4
+        "#F68F4B",  # M5
+        "#ED1B2A",  # RER A
+        "#3C91DC",  # RER B
+        "#62259D",  # M14
+        "#77C695",  # M6
+        "#FF82B4",  # M7
+        "#9C983A",  # M3
+        "#CEC92A",  # M9
+        "#00643C",  # M12
+        "#82C8E6",  # M13
+        "#D282BE",  # M8
+        "#5A230A",  # M11
+        "#DC9609",  # M10
+    ],
+
+    # Berlin U-Bahn + S-Bahn (BVG official colours)
+    "berlin": [
+        "#DA421E",  # U2
+        "#009BD5",  # U7
+        "#8C6DAB",  # U6
+        "#16683D",  # U3
+        "#7DAD4C",  # U1
+        "#F3791D",  # U9
+        "#224F86",  # U8
+        "#F0D722",  # U4
+        "#7E5330",  # U5
+        "#007734",  # S2/S25
+        "#0066AD",  # S3
+        "#DA6BA2",  # S1
+        "#EB7405",  # S5
+        "#816DA6",  # S7
+    ],
+
+    # Hong Kong MTR (official line colours)
+    "hongkong": [
+        "#007DC5",  # Island Line
+        "#ED1D24",  # Tsuen Wan Line
+        "#00AB4E",  # Kwun Tong Line
+        "#F7943E",  # Tung Chung Line
+        "#7D499D",  # Tseung Kwan O Line
+        "#923011",  # Tuen Ma Line
+        "#A3238F",  # West Rail Line
+        "#53B7E8",  # East Rail Line
+        "#BAC429",  # South Island Line
+        "#00888A",  # Airport Express
+        "#F173AC",  # Disneyland Resort Line
+    ],
 }
 
 # Logo orange as a standalone constant
