@@ -40,6 +40,7 @@ class Line:
     color: str
     routes: Sequence[Sequence[str]]
     bends: Sequence[str] = ()  # one bend per route ("hv" | "vh")
+    edge_labels: dict = field(default_factory=dict)  # {(a, b) -> str}
 
 
 @dataclass
@@ -106,13 +107,14 @@ class Diagram:
         ))
         return self
 
-    def line(self, name, color, routes, bend="hv"):
+    def line(self, name, color, routes, bend="hv", edge_labels=None):
         rl = [list(r) for r in routes]
         if isinstance(bend, str):
             bends = [bend] * len(rl)
         else:
             bends = list(bend) + ["hv"] * (len(rl) - len(bend))
-        self.lines.append(Line(name, color, rl, bends))
+        labels = {tuple(sorted(k)): v for k, v in (edge_labels or {}).items()}
+        self.lines.append(Line(name, color, rl, bends, labels))
         return self
 
     def render(self, ax=None):
@@ -206,14 +208,30 @@ class Diagram:
         }
 
         # --- Draw tracks ------------------------------------------------
+        _deferred_labels = []
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
                 for si, (a, b) in enumerate(zip(route[:-1], route[1:])):
                     sa, sb = self.stations[a], self.stations[b]
                     bend = pre_bends[(li, ri, si)]
                     gid = f"metro-track-{li}-{ri}-{si}"
-                    self._draw_segment(ax, sa, sb, ln, line_offset[li], bend,
-                                       gid=gid, theme=th)
+                    key = tuple(sorted([a, b]))
+                    edge_label = ln.edge_labels.get(key)
+                    if edge_label is not None and (sa.x == sb.x or sa.y == sb.y):
+                        _deferred_labels.append((
+                            sa.x, sa.y, sb.x, sb.y,
+                            line_offset[li], sa.y == sb.y,
+                            ln.color, edge_label, gid, th,
+                        ))
+                    else:
+                        if edge_label is not None:
+                            warnings.warn(
+                                f"edge_labels only supported on straight segments; "
+                                f"label {edge_label!r} on ({a!r}, {b!r}) will be skipped.",
+                                stacklevel=2,
+                            )
+                        self._draw_segment(ax, sa, sb, ln, line_offset[li], bend,
+                                           gid=gid, theme=th)
 
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
@@ -241,6 +259,16 @@ class Diagram:
         ax.set_aspect("equal")
         ax.axis("off")
         ax.margins(0.10)
+
+        if _deferred_labels:
+            try:
+                ax.get_figure().canvas.draw()
+            except Exception:
+                pass
+            for x1, y1, x2, y2, off, is_horiz, color, label, gid, th_item in _deferred_labels:
+                self._draw_edge_label(ax, x1, y1, x2, y2, off, is_horiz,
+                                      color, label, gid, th_item)
+
         return ax
 
     def save_svg(
@@ -543,6 +571,87 @@ class Diagram:
                  (cx, cy - r if ey < cy else cy + r)
         return ([start, approach, corner, depart, end],
                 [MPath.MOVETO, MPath.LINETO, MPath.CURVE3, MPath.CURVE3, MPath.LINETO])
+
+    def _draw_edge_label(self, ax, x1, y1, x2, y2, offset, is_horizontal,
+                         color, label, gid, theme) -> None:
+        """Draw a text label interrupting a straight track segment."""
+        if is_horizontal:
+            mx, my = (x1 + x2) / 2, y1 + offset
+            rotation = 0
+        else:
+            mx, my = x1 + offset, (y1 + y2) / 2
+            rotation = 90
+
+        t = ax.text(mx, my, label,
+                    fontsize=self.line_width, color=color,
+                    ha="center", va="center", rotation=rotation,
+                    zorder=7)
+
+        half_gap = self._measure_label_half_gap(ax, t, is_horizontal)
+
+        def _draw_halves(lw, alpha, zorder):
+            kw = dict(color=color, linewidth=lw, alpha=alpha,
+                      solid_capstyle="round", solid_joinstyle="round",
+                      zorder=zorder)
+            if is_horizontal:
+                lo, hi = min(x1, x2), max(x1, x2)
+                if lo < mx - half_gap:
+                    ax.plot([lo, mx - half_gap], [my, my], **kw)
+                if mx + half_gap < hi:
+                    ax.plot([mx + half_gap, hi], [my, my], **kw)
+            else:
+                lo, hi = min(y1, y2), max(y1, y2)
+                if lo < my - half_gap:
+                    ax.plot([mx, mx], [lo, my - half_gap], **kw)
+                if my + half_gap < hi:
+                    ax.plot([mx, mx], [my + half_gap, hi], **kw)
+
+        if theme.glow:
+            _draw_halves(self.line_width * theme.glow_width_multiplier,
+                         theme.glow_alpha, 4)
+        _draw_halves(self.line_width, 1.0, 5)
+
+        # Invisible full-length line carries the GID so SVG animation can
+        # extract a complete path for this segment. The cart follows this ghost
+        # and glides smoothly across the label gap instead of jumping off-track.
+        ghost_kw = dict(color=color, linewidth=self.line_width, alpha=0.0,
+                        solid_capstyle="round", zorder=5)
+        if is_horizontal:
+            ghost = ax.plot([min(x1, x2), max(x1, x2)], [my, my], **ghost_kw)
+        else:
+            ghost = ax.plot([mx, mx], [min(y1, y2), max(y1, y2)], **ghost_kw)
+        if gid and ghost:
+            ghost[0].set_gid(gid)
+
+    def _measure_label_half_gap(self, ax, text_artist, is_horizontal) -> float:
+        """Return half the gap (data units) needed to clear the text label."""
+        PAD = 1.2
+        try:
+            renderer = ax.get_figure().canvas.get_renderer()
+            bbox_disp = text_artist.get_window_extent(renderer=renderer)
+            inv = ax.transData.inverted()
+            c0 = inv.transform((bbox_disp.x0, bbox_disp.y0))
+            c1 = inv.transform((bbox_disp.x1, bbox_disp.y1))
+            if is_horizontal:
+                return abs(c1[0] - c0[0]) / 2 * PAD
+            else:
+                return abs(c1[1] - c0[1]) / 2 * PAD
+        except Exception:
+            # Fallback: estimate from axes limits and font size
+            n = max(len(text_artist.get_text()), 1)
+            try:
+                fig = ax.get_figure()
+                ax_pos = ax.get_position()
+                if is_horizontal:
+                    ax_pts = ax_pos.width * fig.get_figwidth() * 72
+                    data_range = max(ax.get_xlim()[1] - ax.get_xlim()[0], 1e-6)
+                else:
+                    ax_pts = ax_pos.height * fig.get_figheight() * 72
+                    data_range = max(ax.get_ylim()[1] - ax.get_ylim()[0], 1e-6)
+                pts_per_data = ax_pts / data_range
+                return n * self.line_width * 0.55 / pts_per_data / 2 * PAD
+            except Exception:
+                return n * 0.03
 
     def _draw_label(self, ax, s: Station, cy: float, th: Theme) -> None:
         if s.label_pos == "above":
