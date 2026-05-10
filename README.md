@@ -142,22 +142,6 @@ d.line("ATAC-seq",     c3, [...])
 
 ---
 
-**`"tokyo"`** — Tokyo Metro + Toei. White background, dark navy labels, vivid high-contrast colours (Ginza orange, Marunouchi red, Tozai cyan).
-
-<p align="center"><img src="graphics/theme_tokyo.png" width="100%"/></p>
-
-```python
-from metroplot.themes import PALETTES
-
-d = Diagram(theme="tokyo", line_width=5, corner_radius=0.20, legend_loc="lower left")
-c1, c2, c3 = PALETTES["tokyo"][:3]    # Ginza orange · Marunouchi red · Tozai cyan
-d.line("Bulk RNA-seq", c1, [...])
-d.line("scRNA-seq",    c2, [...])
-d.line("ATAC-seq",     c3, [...])
-```
-
----
-
 **`"nyc"`** — NYC Subway (MTA). White background, pure black labels, bold primaries with maximum contrast. Minimal corner rounding matches the map's sharp geometry.
 
 <p align="center"><img src="graphics/theme_nyc.png" width="100%"/></p>
@@ -199,22 +183,6 @@ from metroplot.themes import PALETTES
 
 d = Diagram(theme="berlin", line_width=5, corner_radius=0.18, legend_loc="lower left")
 c1, c2, c3 = PALETTES["berlin"][:3]   # U2 red · U7 blue · U6 purple
-d.line("Bulk RNA-seq", c1, [...])
-d.line("scRNA-seq",    c2, [...])
-d.line("ATAC-seq",     c3, [...])
-```
-
----
-
-**`"hongkong"`** — Hong Kong MTR. Crisp white background, corporate navy labels. Clean and high-contrast.
-
-<p align="center"><img src="graphics/theme_hongkong.png" width="100%"/></p>
-
-```python
-from metroplot.themes import PALETTES
-
-d = Diagram(theme="hongkong", line_width=5, corner_radius=0.20, legend_loc="lower left")
-c1, c2, c3 = PALETTES["hongkong"][:3] # Island blue · Tsuen Wan red · Kwun Tong green
 d.line("Bulk RNA-seq", c1, [...])
 d.line("scRNA-seq",    c2, [...])
 d.line("ATAC-seq",     c3, [...])
