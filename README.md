@@ -86,31 +86,140 @@ d.line("Bulk RNA-seq", "#1f2a44", [["fastq", "star", "fcounts", "deseq2"]], edge
 
 ## Themes
 
-Three built-in themes ship with metroplot. All use a transparent background so diagrams embed cleanly into any document, slide, or web page without a white box around them.
+### Built-in themes
 
-| Theme | Best for |
-|---|---|
-| `"light"` *(default)* | Papers, reports, light-mode web |
-| `"dark"` | Dark slides or dark-mode docs — adds coloured station rings and a track glow |
-| `"minimal"` | Publications — thinner strokes, no inner dots |
+Three themes ship with metroplot. All use a transparent background so diagrams embed cleanly into any document or slide.
+
+**`"light"`** *(default)* — clean white, coloured station rings, no glow. Best for papers and reports.
+
+<p align="center"><img src="graphics/theme_light.png" width="100%"/></p>
+
+```python
+d = Diagram(theme="light")
+```
+
+---
+
+**`"dark"`** — dark background, glowing tracks, coloured rings. Best for dark slides or dark-mode docs.
+
+<p align="center"><img src="graphics/theme_dark.png" width="100%"/></p>
 
 ```python
 d = Diagram(theme="dark")
 ```
 
-Pick colours from the built-in palette, or use any hex code:
+---
+
+**`"minimal"`** — thinner strokes, no inner dots, muted colours. Best for publications.
+
+<p align="center"><img src="graphics/theme_minimal.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, LOGO_ORANGE
-
-RED, BLUE, TEAL, NAVY = PALETTES["default"]
-ORANGE = LOGO_ORANGE
-
-d.line("Bulk RNA-seq", NAVY, ...)
-d.line("scRNA-seq",    ORANGE, ...)
+d = Diagram(theme="minimal")
 ```
 
-Define a custom theme by subclassing or replacing an existing one:
+---
+
+### City palettes
+
+metroplot ships with official line colours from six major metro systems. Use them to build diagrams that feel like a real transit map, or simply to get a well-tested, high-contrast palette for free.
+
+Pass the palette when constructing a `Theme`, then set `line_width` and `corner_radius` on `Diagram` to match the visual weight of the reference system.
+
+---
+
+**London Underground** — TfL official colours. Thick rounded lines, white station circles with coloured rings.
+
+<p align="center"><img src="graphics/theme_london.png" width="100%"/></p>
+
+```python
+from metroplot.themes import PALETTES, Theme
+
+london_theme = Theme(station_colored_edge=True, station_fill="white",
+                     palette=PALETTES["london"])
+d = Diagram(theme=london_theme, line_width=6, corner_radius=0.25)
+
+c1, c2, c3 = PALETTES["london"][:3]  # Central red, Piccadilly blue, District green
+d.line("Bulk RNA-seq", c1, [...])
+d.line("scRNA-seq",    c2, [...])
+d.line("ATAC-seq",     c3, [...])
+```
+
+---
+
+**Tokyo Metro** — vivid, high-contrast colours. Ginza orange, Marunouchi red, Tozai cyan.
+
+<p align="center"><img src="graphics/theme_tokyo.png" width="100%"/></p>
+
+```python
+from metroplot.themes import PALETTES, Theme
+
+tokyo_theme = Theme(station_colored_edge=True, station_fill="white",
+                    palette=PALETTES["tokyo"])
+d = Diagram(theme=tokyo_theme, line_width=5, corner_radius=0.20)
+```
+
+---
+
+**NYC Subway** — MTA official colours. Bold primaries with strong contrast.
+
+<p align="center"><img src="graphics/theme_nyc.png" width="100%"/></p>
+
+```python
+from metroplot.themes import PALETTES, Theme
+
+nyc_theme = Theme(station_colored_edge=True, station_fill="white",
+                  palette=PALETTES["nyc"])
+d = Diagram(theme=nyc_theme, line_width=6, corner_radius=0.15)
+```
+
+---
+
+**Paris Métro** — RATP official colours. Warm golds, soft blues, and pastels.
+
+<p align="center"><img src="graphics/theme_paris.png" width="100%"/></p>
+
+```python
+from metroplot.themes import PALETTES, Theme
+
+paris_theme = Theme(station_colored_edge=True, station_fill="white",
+                    palette=PALETTES["paris"])
+d = Diagram(theme=paris_theme, line_width=5, corner_radius=0.20)
+```
+
+---
+
+**Berlin U-Bahn / S-Bahn** — BVG official colours. A broad mix of saturated primaries and earth tones.
+
+<p align="center"><img src="graphics/theme_berlin.png" width="100%"/></p>
+
+```python
+from metroplot.themes import PALETTES, Theme
+
+berlin_theme = Theme(station_colored_edge=True, station_fill="white",
+                     palette=PALETTES["berlin"])
+d = Diagram(theme=berlin_theme, line_width=5, corner_radius=0.20)
+```
+
+---
+
+**Hong Kong MTR** — official line colours. Clean, corporate, high-contrast.
+
+<p align="center"><img src="graphics/theme_hongkong.png" width="100%"/></p>
+
+```python
+from metroplot.themes import PALETTES, Theme
+
+hk_theme = Theme(station_colored_edge=True, station_fill="white",
+                 palette=PALETTES["hongkong"])
+d = Diagram(theme=hk_theme, line_width=5, corner_radius=0.20)
+```
+
+---
+
+### Custom themes
+
+Define a fully custom theme by constructing a `Theme` directly and registering it:
 
 ```python
 from metroplot.themes import Theme, THEMES
