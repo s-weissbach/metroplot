@@ -10,11 +10,9 @@ City themes (pass by name to ``Diagram(theme="london")`` etc.):
     "nyc"       NYC Subway — white bg, pure black labels, MTA colours
     "paris"     Paris Métro — warm cream bg, warm dark labels, RATP colours
     "berlin"    Berlin U-Bahn/S-Bahn — light grey bg, neutral labels, BVG colours
-    "hongkong"  Hong Kong MTR — white bg, corporate navy labels, MTR colours
-
 Raw palettes (colours only, no styling):
     PALETTES["london"], PALETTES["nyc"],
-    PALETTES["paris"], PALETTES["berlin"], PALETTES["hongkong"]
+    PALETTES["paris"], PALETTES["berlin"]
 
 Add your own theme:
     from metroplot.themes import Theme, THEMES
@@ -110,20 +108,6 @@ PALETTES: dict[str, list[str]] = {
         "#816DA6",  # S7
     ],
 
-    # Hong Kong MTR (official line colours)
-    "hongkong": [
-        "#007DC5",  # Island Line
-        "#ED1D24",  # Tsuen Wan Line
-        "#00AB4E",  # Kwun Tong Line
-        "#F7943E",  # Tung Chung Line
-        "#7D499D",  # Tseung Kwan O Line
-        "#923011",  # Tuen Ma Line
-        "#A3238F",  # West Rail Line
-        "#53B7E8",  # East Rail Line
-        "#BAC429",  # South Island Line
-        "#00888A",  # Airport Express
-        "#F173AC",  # Disneyland Resort Line
-    ],
 }
 
 # Logo orange as a standalone constant
@@ -161,15 +145,18 @@ class Theme:
     # Station appearance
     station_style: str = "circle"
     # "circle"      — white circle with edge (default)
-    # "colored_dot" — solid circle in the line's colour, no edge (Paris)
-    # "solid"       — solid circle in station_edge colour, no edge (NYC)
-    # "rect"        — rounded rectangle, white fill, edge in line colour (Tokyo)
+    # "colored_dot" — solid circle in the line's colour, no edge
+    # "paris_dot"   — colored circle, diameter = 1.5 × line_width pts (Paris)
+    # "solid"       — solid circle in station_fill colour, no edge
+    # "dot_letter"  — black circle (diameter=line_width) + white first letter (NYC)
 
     station_interchange_style: str = "pill"
     # "pill"          — single rounded rect spanning all track offsets (default)
-    # "pill_count"    — pill sized by n_lines × circle diameter (Paris)
+    # "paris_pill"    — thick rounded line spanning tracks, white fill + thin black outline (Paris)
+    # "pill_count"    — pill sized by n_lines × circle diameter
     # "circle"        — single centered circle, same as a single-line station (London)
     # "circles"       — one plain circle per track, no connecting bar
+    # "dot_letter"    — black circle (diameter=line_width) + white first letter, one per track (NYC)
     # "connected"     — full circles at each track + thin connecting bar
     # "grouped"       — individual stations inside a white rounded-rect border (NYC)
     # "grouped_no_fill" — individual stations inside a transparent rounded-rect border (Tokyo)
@@ -185,9 +172,14 @@ class Theme:
     station_dot_ratio: float = 0.42
     station_colored_edge: bool = False
 
+    # Track spacing override (None = use Diagram.track_spacing)
+    track_spacing: float | None = None
+
     # Labels
     label_color: str = "#111111"
     sub_color: str = "#555555"
+    label_dy_main: float | None = None  # overrides Diagram.label_dy_main when set
+    label_dy_sub: float | None = None   # overrides Diagram.label_dy_sub when set
 
     # Track glow (halo behind each track segment)
     glow: bool = False
@@ -312,21 +304,24 @@ LONDON = Theme(
 )
 
 # NYC Subway
-# Single: solid black circles. Interchange: black dots inside a white grouped rect.
+# All stations: black circle (diameter = line_width) with white first-letter of tool.
+# Interchange: one such circle per lane.
 NYC = Theme(
     name="nyc",
     background="white",
-    station_style="solid",
-    station_interchange_style="grouped",
+    station_style="dot_letter",
+    station_interchange_style="dot_letter",
     station_fill="#000000",
-    station_interchange_fill="white",
-    station_interchange_edge="#000000",
-    station_edge="#000000",
-    station_edge_width=1.0,
+    station_interchange_fill="#000000",
+    station_interchange_edge="none",
+    station_edge="none",
+    station_edge_width=0.0,
     station_dot=False,
     station_colored_edge=False,
     label_color="#000000",
     sub_color="#555555",
+    label_dy_main=0.32,
+    label_dy_sub=0.20,
     glow=False,
     section_fill="#f5f5f5",
     section_edge="#cccccc",
@@ -338,21 +333,23 @@ NYC = Theme(
 )
 
 # Paris Métro
-# Single: solid circle in line colour, no outline. Interchange: white pill, n_lines × circle width.
+# Single: small colored dot (1.5× line_width). Interchange: white pill spanning tracks, thin black outline.
 PARIS = Theme(
     name="paris",
     background="#fafaf5",
-    station_style="colored_dot",
-    station_interchange_style="pill_count",
+    station_style="paris_dot",
+    station_interchange_style="paris_pill",
     station_fill="#fafaf5",
     station_interchange_fill="white",
-    station_interchange_edge="#444444",
+    station_interchange_edge="#000000",
     station_edge="none",
     station_edge_width=0.0,
     station_dot=False,
     station_colored_edge=False,
     label_color="#1a1410",
     sub_color="#6e6055",
+    label_dy_main=0.32,
+    label_dy_sub=0.20,
     glow=False,
     section_fill="#f0ede5",
     section_edge="#ccc4b0",
@@ -364,21 +361,24 @@ PARIS = Theme(
 )
 
 # Berlin U-Bahn / S-Bahn
-# Single: white circle, no visible outline. Interchange: thin elongated pill, rounded, black outline.
+# Single: white circle, diameter = line_width, no outline.
+# Interchange: white rounded-rect (pill), width = 1.2× line_width, thin black outline.
 BERLIN = Theme(
     name="berlin",
     background="#f4f4f4",
-    station_style="circle",
-    station_interchange_style="pill",
+    station_style="berlin_dot",
+    station_interchange_style="berlin_pill",
     station_fill="white",
     station_interchange_fill="white",
     station_interchange_edge="#222222",
-    station_edge="#f4f4f4",       # same as background → invisible outline
-    station_edge_width=1.0,
+    station_edge="none",
+    station_edge_width=0.0,
     station_dot=False,
     station_colored_edge=False,
     label_color="#1a1a1a",
     sub_color="#606060",
+    label_dy_main=0.32,
+    label_dy_sub=0.20,
     glow=False,
     section_fill="#eaeaea",
     section_edge="#c0c0c0",
@@ -389,33 +389,6 @@ BERLIN = Theme(
     palette=list(PALETTES["berlin"]),
 )
 
-# Hong Kong MTR
-# Single: small white circles, black outline. Interchange: overlapping merged circles.
-HONGKONG = Theme(
-    name="hongkong",
-    background="white",
-    station_style="circle",
-    station_interchange_style="merged",
-    station_fill="white",
-    station_interchange_fill="white",
-    station_interchange_edge="#222222",
-    station_edge="#222222",
-    station_edge_width=2.0,
-    station_radius_factor=0.75,
-    station_dot=False,
-    station_colored_edge=False,
-    label_color="#1a2a3a",
-    sub_color="#4a6070",
-    glow=False,
-    section_fill="#f0f4f8",
-    section_edge="#c8d8e8",
-    section_edge_width=0.8,
-    section_label_color="#4a6070",
-    section_label_font=9,
-    section_corner_radius=0.25,
-    palette=list(PALETTES["hongkong"]),
-)
-
 THEMES: dict[str, Theme] = {
     "light":    LIGHT,
     "dark":     DARK,
@@ -424,7 +397,6 @@ THEMES: dict[str, Theme] = {
     "nyc":      NYC,
     "paris":    PARIS,
     "berlin":   BERLIN,
-    "hongkong": HONGKONG,
 }
 
 

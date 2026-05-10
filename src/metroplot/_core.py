@@ -204,7 +204,8 @@ class Diagram:
                 line_offset[li] = 0.0
                 continue
             best = max(cohorts, key=lambda c: (len(c), -c.index(li)))
-            line_offset[li] = (best.index(li) - (len(best) - 1) / 2) * self.track_spacing
+            spacing = th.track_spacing if th.track_spacing is not None else self.track_spacing
+            line_offset[li] = (best.index(li) - (len(best) - 1) / 2) * spacing
 
         station_lines: dict[str, list[int]] = defaultdict(list)
         for li, ln in enumerate(self.lines):
@@ -445,7 +446,29 @@ class Diagram:
             rel = [p[0] for p in pairs]
 
             style = th.station_interchange_style
-            if style == "connected":
+            if style == "hk_pill":
+                self._draw_hk_pill(ax, s, cy, rel, spread, th, gid)
+            elif style == "berlin_pill":
+                self._draw_berlin_pill(ax, s, cy, rel, spread, gid)
+            elif style == "paris_pill":
+                self._draw_paris_pill(ax, s, cy, rel, spread, gid)
+            elif style == "dot_letter":
+                if spread == "y":
+                    for o in rel:
+                        self._draw_dot_letter(ax, s.x, cy + o, s.label, gid)
+                else:
+                    for o in rel:
+                        self._draw_dot_letter(ax, s.x + o, cy, s.label, gid)
+            elif style == "circle":
+                # Single centered circle — same as a single-line station
+                p = Circle((s.x, cy), r, facecolor=ic_fill,
+                            edgecolor=ic_edge, linewidth=ic_lw, zorder=10)
+                p.set_gid(gid)
+                ax.add_patch(p)
+            elif style == "circles":
+                self._draw_station_circles(ax, s, cy, r, rel, spread,
+                                           ic_fill, ic_edge, ic_lw, gid)
+            elif style == "connected":
                 self._draw_station_connected(ax, s, cy, r, rel, spread,
                                              ic_fill, ic_edge, ic_lw, gid)
             elif style == "grouped":
@@ -495,7 +518,19 @@ class Diagram:
         edge_color = line_color if th.station_colored_edge else th.station_edge
 
         style = th.station_style
-        if style == "colored_dot":
+        if style == "hk_dot":
+            self._draw_hk_dot(ax, s.x, cy, th, gid)
+
+        elif style == "berlin_dot":
+            self._draw_berlin_dot(ax, s.x, cy, gid)
+
+        elif style == "paris_dot":
+            self._draw_paris_dot(ax, s.x, cy, line_color, gid)
+
+        elif style == "dot_letter":
+            self._draw_dot_letter(ax, s.x, cy, s.label, gid)
+
+        elif style == "colored_dot":
             p = Circle((s.x, cy), r, facecolor=line_color, edgecolor="none", zorder=10)
             p.set_gid(gid)
             ax.add_patch(p)
@@ -533,9 +568,121 @@ class Diagram:
                 ax.add_patch(Circle((s.x, cy), r * th.station_dot_ratio,
                                     facecolor=primary_color, edgecolor="none", zorder=11))
 
+    def _draw_hk_dot(self, ax, x, y, th, gid):
+        """HK single: white circle touching adjacent circles, thin dark outline."""
+        r = (th.track_spacing / 2) if th.track_spacing else 0.09
+        p = Circle((x, y), r, facecolor='white', edgecolor='#1a2a3a',
+                   linewidth=1.5, zorder=10)
+        p.set_gid(gid)
+        ax.add_patch(p)
+
+    def _draw_hk_pill(self, ax, s, cy, rel, spread, th, gid):
+        """HK interchange: individual circles stacked and touching, dark outline.
+
+        Circle radius = half the inter-track spacing so adjacent circles meet
+        exactly at their edges with no gap.
+        """
+        if len(rel) > 1:
+            circle_r = (max(rel) - min(rel)) / (len(rel) - 1) / 2
+        else:
+            circle_r = (th.track_spacing / 2) if th.track_spacing else 0.09
+        edge = '#1a2a3a'
+        lw = 1.5
+        if spread == "y":
+            for i, o in enumerate(rel):
+                p = Circle((s.x, cy + o), circle_r, facecolor='white',
+                            edgecolor=edge, linewidth=lw, zorder=10)
+                if i == len(rel) - 1:
+                    p.set_gid(gid)
+                ax.add_patch(p)
+        else:
+            for i, o in enumerate(rel):
+                p = Circle((s.x + o, cy), circle_r, facecolor='white',
+                            edgecolor=edge, linewidth=lw, zorder=10)
+                if i == len(rel) - 1:
+                    p.set_gid(gid)
+                ax.add_patch(p)
+
+    def _draw_berlin_dot(self, ax, x, y, gid):
+        """Berlin single station: white circle, diameter = line_width pts, no outline."""
+        artists = ax.plot(x, y, 'o', markersize=self.line_width,
+                          color='white', markeredgecolor='none', zorder=10)
+        if gid and artists:
+            artists[0].set_gid(gid)
+
+    def _draw_berlin_pill(self, ax, s, cy, rel, spread, gid):
+        """Berlin interchange: white rounded-rect, width = 1.2× line_width, thin black outline."""
+        pill_lw = self.line_width * 1.2
+        outline_lw = pill_lw + 1.5
+        kw = dict(solid_capstyle='round', zorder=10)
+        if spread == "y":
+            y0, y1 = cy + min(rel), cy + max(rel)
+            ax.plot([s.x, s.x], [y0, y1], color='black', linewidth=outline_lw, **kw)
+            artists = ax.plot([s.x, s.x], [y0, y1], color='white', linewidth=pill_lw, **kw)
+        else:
+            x0, x1 = s.x + min(rel), s.x + max(rel)
+            ax.plot([x0, x1], [cy, cy], color='black', linewidth=outline_lw, **kw)
+            artists = ax.plot([x0, x1], [cy, cy], color='white', linewidth=pill_lw, **kw)
+        if gid and artists:
+            artists[0].set_gid(gid)
+
+    def _draw_paris_dot(self, ax, x, y, line_color, gid):
+        """Paris single station: colored circle, diameter = 2 × line_width pts."""
+        artists = ax.plot(x, y, 'o', markersize=self.line_width * 2.0,
+                          color=line_color, markeredgecolor='none', zorder=10)
+        if gid and artists:
+            artists[0].set_gid(gid)
+
+    def _draw_paris_pill(self, ax, s, cy, rel, spread, gid):
+        """Paris interchange: thick rounded-cap line spanning all tracks.
+
+        Width = 2 × line_width pts; round caps add the overhang automatically.
+        Drawn as a black outline beneath a white fill.
+        """
+        pill_lw = self.line_width * 2.0
+        outline_lw = pill_lw + 2.0
+        kw = dict(solid_capstyle='round', zorder=10)
+        if spread == "y":
+            y0, y1 = cy + min(rel), cy + max(rel)
+            ax.plot([s.x, s.x], [y0, y1], color='black', linewidth=outline_lw, **kw)
+            artists = ax.plot([s.x, s.x], [y0, y1], color='white', linewidth=pill_lw, **kw)
+        else:
+            x0, x1 = s.x + min(rel), s.x + max(rel)
+            ax.plot([x0, x1], [cy, cy], color='black', linewidth=outline_lw, **kw)
+            artists = ax.plot([x0, x1], [cy, cy], color='white', linewidth=pill_lw, **kw)
+        if gid and artists:
+            artists[0].set_gid(gid)
+
+    def _draw_dot_letter(self, ax, x, y, label, gid):
+        """Black circle (diameter = line_width pts) with white first-letter inside."""
+        ms = self.line_width
+        artists = ax.plot(x, y, 'o', markersize=ms, color='black',
+                          markeredgecolor='none', zorder=10)
+        if gid and artists:
+            artists[0].set_gid(gid)
+        letter = label[0].upper() if label else ""
+        if letter:
+            ax.text(x, y, letter, ha='center', va='center',
+                    color='white', fontsize=ms * 0.55, fontweight='bold', zorder=11)
+
+    def _draw_station_circles(self, ax, s, cy, r, rel, spread,
+                              fill, edge, lw, gid):
+        """One plain circle per track position, no connecting bar."""
+        if spread == "y":
+            for o in rel:
+                ax.add_patch(Circle((s.x, cy + o), r,
+                                    facecolor=fill, edgecolor=edge,
+                                    linewidth=lw, zorder=10))
+        else:
+            for o in rel:
+                ax.add_patch(Circle((s.x + o, cy), r,
+                                    facecolor=fill, edgecolor=edge,
+                                    linewidth=lw, zorder=10))
+        ax.patches[-1].set_gid(gid)
+
     def _draw_station_connected(self, ax, s, cy, r, rel, spread,
                                 fill, edge, lw, gid):
-        """London: full circles at each track + thin connecting bar."""
+        """Circles at each track + thin connecting bar."""
         bar_half = r * 0.28
         if spread == "y":
             ycs = [cy + o for o in rel]
@@ -872,18 +1019,20 @@ class Diagram:
                 return n * 0.03
 
     def _draw_label(self, ax, s: Station, cy: float, th: Theme) -> None:
+        dy_main = th.label_dy_main if th.label_dy_main is not None else self.label_dy_main
+        dy_sub  = th.label_dy_sub  if th.label_dy_sub  is not None else self.label_dy_sub
         if s.label_pos == "above":
-            main = (0,  self.label_dy_main, "center", "bottom")
-            sub  = (0,  self.label_dy_sub,  "center", "bottom")
+            main = (0,  dy_main, "center", "bottom")
+            sub  = (0,  dy_sub,  "center", "bottom")
         elif s.label_pos == "below":
-            main = (0, -self.label_dy_main, "center", "top")
-            sub  = (0, -self.label_dy_sub,  "center", "top")
+            main = (0, -dy_main, "center", "top")
+            sub  = (0, -dy_sub,  "center", "top")
         elif s.label_pos == "left":
-            main = (-self.label_dy_main, 0, "right", "bottom")
-            sub  = (-self.label_dy_main, 0, "right", "top")
+            main = (-dy_main, 0, "right", "bottom")
+            sub  = (-dy_main, 0, "right", "top")
         elif s.label_pos == "right":
-            main = ( self.label_dy_main, 0, "left", "bottom")
-            sub  = ( self.label_dy_main, 0, "left", "top")
+            main = ( dy_main, 0, "left", "bottom")
+            sub  = ( dy_sub,  0, "left", "top")
         else:
             raise ValueError(f"unknown label_pos: {s.label_pos!r}")
 
