@@ -446,6 +446,9 @@ class Diagram:
             rel = [line_offset[li] - sdy_here for li in slines]
             pad = radius * 0.45
             spread = (station_spread or {}).get(s.name, "y")
+            pill_fill = (th.station_interchange_fill
+                         if th.station_interchange_fill is not None
+                         else th.station_fill)
             if spread == "x":
                 cx_pill = s.x + (min(rel) + max(rel)) / 2
                 w = max(max(rel) - min(rel) + 2 * pad, 2 * radius)
@@ -456,7 +459,7 @@ class Diagram:
                     max(w - 2 * r_box, 1e-3),
                     max(h - 2 * r_box, 1e-3),
                     boxstyle=f"round,pad={r_box}",
-                    facecolor=th.station_fill,
+                    facecolor=pill_fill,
                     edgecolor=edge_color,
                     linewidth=edge_lw,
                     zorder=10,
@@ -471,7 +474,7 @@ class Diagram:
                     max(w - 2 * r_box, 1e-3),
                     max(h - 2 * r_box, 1e-3),
                     boxstyle=f"round,pad={r_box}",
-                    facecolor=th.station_fill,
+                    facecolor=pill_fill,
                     edgecolor=edge_color,
                     linewidth=edge_lw,
                     zorder=10,

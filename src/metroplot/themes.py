@@ -178,6 +178,7 @@ class Theme:
 
     # Station circles
     station_fill: str = "none"
+    station_interchange_fill: str | None = None  # None → falls back to station_fill
     station_edge: str = "#111111"
     station_edge_width: float = 2.5
     station_dot: bool = True
@@ -235,11 +236,12 @@ LIGHT = Theme(
 DARK = Theme(
     name="dark",
     background="none",
-    station_fill="none",        # transparent fill → station reads as a ring
+    station_fill="none",              # transparent fill → station reads as a ring
+    station_interchange_fill="#1a1a2e",  # opaque pill so crossing tracks are hidden
     station_edge="#a8dadc",
     station_edge_width=2.0,
     station_dot=False,
-    station_colored_edge=True,  # ring picks up the line colour
+    station_colored_edge=True,        # ring picks up the line colour
     label_color="#f1faee",
     sub_color="#a8dadc",
     glow=True,
