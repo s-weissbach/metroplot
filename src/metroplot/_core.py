@@ -432,7 +432,8 @@ class Diagram:
                       station_spread: dict[str, str] | None = None) -> None:
         is_interchange = len(slines) > 1
         spread = (station_spread or {}).get(s.name, "y")
-        r = radius * th.station_radius_factor   # effective draw radius
+        r = radius * (th.station_radius_factor if is_interchange
+                      else th.station_single_radius_factor)
         gid = f"metro-station-{s.name}"
 
         ic_fill = th.station_interchange_fill if th.station_interchange_fill is not None else th.station_fill
