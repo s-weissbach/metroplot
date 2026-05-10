@@ -162,10 +162,12 @@ def test_edge_label_interrupts_track():
          .station("b", 6, 0, "B")
          .line("main", "#e63946", [["a", "b"]], edge_labels={("a", "b"): "X"}))
     ax = d.render()
-    # Two halves instead of one full segment
-    horizontals = [ln for ln in ax.get_lines()
-                   if len(ln.get_xdata()) == 2 and ln.get_ydata()[0] == ln.get_ydata()[-1]]
+    # Two visible halves (alpha>0) plus one invisible ghost for animation
+    all_h = [ln for ln in ax.get_lines()
+             if len(ln.get_xdata()) == 2 and ln.get_ydata()[0] == ln.get_ydata()[-1]]
+    horizontals = [ln for ln in all_h if ln.get_alpha() != 0.0]
     assert len(horizontals) == 2
+    assert any(ln.get_alpha() == 0.0 for ln in all_h), "expected ghost line"
     # The two halves should straddle the midpoint (x=3)
     x_maxes = sorted(max(ln.get_xdata()) for ln in horizontals)
     x_mins = sorted(min(ln.get_xdata()) for ln in horizontals)

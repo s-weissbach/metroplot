@@ -589,30 +589,39 @@ class Diagram:
 
         half_gap = self._measure_label_half_gap(ax, t, is_horizontal)
 
-        def _draw_halves(lw, alpha, zorder, gid_val=None):
+        def _draw_halves(lw, alpha, zorder):
             kw = dict(color=color, linewidth=lw, alpha=alpha,
                       solid_capstyle="round", solid_joinstyle="round",
                       zorder=zorder)
-            drawn = []
             if is_horizontal:
                 lo, hi = min(x1, x2), max(x1, x2)
                 if lo < mx - half_gap:
-                    drawn.extend(ax.plot([lo, mx - half_gap], [my, my], **kw))
+                    ax.plot([lo, mx - half_gap], [my, my], **kw)
                 if mx + half_gap < hi:
-                    drawn.extend(ax.plot([mx + half_gap, hi], [my, my], **kw))
+                    ax.plot([mx + half_gap, hi], [my, my], **kw)
             else:
                 lo, hi = min(y1, y2), max(y1, y2)
                 if lo < my - half_gap:
-                    drawn.extend(ax.plot([mx, mx], [lo, my - half_gap], **kw))
+                    ax.plot([mx, mx], [lo, my - half_gap], **kw)
                 if my + half_gap < hi:
-                    drawn.extend(ax.plot([mx, mx], [my + half_gap, hi], **kw))
-            if gid_val and drawn:
-                drawn[0].set_gid(gid_val)
+                    ax.plot([mx, mx], [my + half_gap, hi], **kw)
 
         if theme.glow:
             _draw_halves(self.line_width * theme.glow_width_multiplier,
                          theme.glow_alpha, 4)
-        _draw_halves(self.line_width, 1.0, 5, gid)
+        _draw_halves(self.line_width, 1.0, 5)
+
+        # Invisible full-length line carries the GID so SVG animation can
+        # extract a complete path for this segment. The cart follows this ghost
+        # and glides smoothly across the label gap instead of jumping off-track.
+        ghost_kw = dict(color=color, linewidth=self.line_width, alpha=0.0,
+                        solid_capstyle="round", zorder=5)
+        if is_horizontal:
+            ghost = ax.plot([min(x1, x2), max(x1, x2)], [my, my], **ghost_kw)
+        else:
+            ghost = ax.plot([mx, mx], [min(y1, y2), max(y1, y2)], **ghost_kw)
+        if gid and ghost:
+            ghost[0].set_gid(gid)
 
     def _measure_label_half_gap(self, ax, text_artist, is_horizontal) -> float:
         """Return half the gap (data units) needed to clear the text label."""
