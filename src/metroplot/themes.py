@@ -5,13 +5,17 @@ into any document, slide, or web page regardless of its background colour.
 
 Built-in presets:  "light", "dark", "minimal"
 
-City palettes (pass to ``Theme(palette=PALETTES["london"])`` etc.):
-    "london"    London Underground (TfL official colours)
-    "tokyo"     Tokyo Metro + Toei Subway
-    "nyc"       NYC Subway (MTA official colours)
-    "paris"     Paris Métro (RATP official colours)
-    "berlin"    Berlin U-Bahn + S-Bahn (BVG official colours)
-    "hongkong"  Hong Kong MTR
+City themes (pass by name to ``Diagram(theme="london")`` etc.):
+    "london"    London Underground — white bg, near-black labels, TfL colours
+    "tokyo"     Tokyo Metro — white bg, dark navy labels, vivid line colours
+    "nyc"       NYC Subway — white bg, pure black labels, MTA colours
+    "paris"     Paris Métro — warm cream bg, warm dark labels, RATP colours
+    "berlin"    Berlin U-Bahn/S-Bahn — light grey bg, neutral labels, BVG colours
+    "hongkong"  Hong Kong MTR — white bg, corporate navy labels, MTR colours
+
+Raw palettes (colours only, no styling):
+    PALETTES["london"], PALETTES["tokyo"], PALETTES["nyc"],
+    PALETTES["paris"], PALETTES["berlin"], PALETTES["hongkong"]
 
 Add your own theme:
     from metroplot.themes import Theme, THEMES
@@ -271,10 +275,149 @@ MINIMAL = Theme(
     palette=list(PALETTES["default"]),
 )
 
+# ---------------------------------------------------------------------------
+# City themes
+# ---------------------------------------------------------------------------
+# Each theme bundles the official palette with a matching visual style.
+# Pair with Diagram(line_width=..., corner_radius=...) as shown in the README
+# to more closely match the reference system's visual weight.
+
+# London Underground — white background, near-black labels, thick coloured rings
+LONDON = Theme(
+    name="london",
+    background="white",
+    station_fill="white",
+    station_edge="#868f96",
+    station_edge_width=2.5,
+    station_dot=False,
+    station_colored_edge=True,
+    label_color="#0a0a0a",
+    sub_color="#6e6e6e",
+    glow=False,
+    section_fill="#f2f2f2",
+    section_edge="#cccccc",
+    section_edge_width=0.8,
+    section_label_color="#666666",
+    section_label_font=9,
+    section_corner_radius=0.30,
+    palette=list(PALETTES["london"]),
+)
+
+# Tokyo Metro — white background, dark navy labels, clean and precise
+TOKYO = Theme(
+    name="tokyo",
+    background="white",
+    station_fill="white",
+    station_edge="#888888",
+    station_edge_width=2.5,
+    station_dot=False,
+    station_colored_edge=True,
+    label_color="#1a1a2e",
+    sub_color="#5a6a7a",
+    glow=False,
+    section_fill="#f0f4f8",
+    section_edge="#c8d4e0",
+    section_edge_width=0.8,
+    section_label_color="#5a6a7a",
+    section_label_font=9,
+    section_corner_radius=0.25,
+    palette=list(PALETTES["tokyo"]),
+)
+
+# NYC Subway — white background, pure black labels, high contrast
+NYC = Theme(
+    name="nyc",
+    background="white",
+    station_fill="white",
+    station_edge="#888888",
+    station_edge_width=3.0,
+    station_dot=False,
+    station_colored_edge=True,
+    label_color="#000000",
+    sub_color="#555555",
+    glow=False,
+    section_fill="#f5f5f5",
+    section_edge="#cccccc",
+    section_edge_width=1.0,
+    section_label_color="#555555",
+    section_label_font=9,
+    section_corner_radius=0.20,
+    palette=list(PALETTES["nyc"]),
+)
+
+# Paris Métro — warm cream background, warm dark labels
+PARIS = Theme(
+    name="paris",
+    background="#fafaf5",
+    station_fill="#fafaf5",
+    station_edge="#8a8070",
+    station_edge_width=2.5,
+    station_dot=False,
+    station_colored_edge=True,
+    label_color="#1a1410",
+    sub_color="#6e6055",
+    glow=False,
+    section_fill="#f0ede5",
+    section_edge="#ccc4b0",
+    section_edge_width=0.8,
+    section_label_color="#7a6e60",
+    section_label_font=9,
+    section_corner_radius=0.35,
+    palette=list(PALETTES["paris"]),
+)
+
+# Berlin U-Bahn / S-Bahn — light grey background, neutral dark labels
+BERLIN = Theme(
+    name="berlin",
+    background="#f4f4f4",
+    station_fill="#f4f4f4",
+    station_edge="#888888",
+    station_edge_width=2.5,
+    station_dot=False,
+    station_colored_edge=True,
+    label_color="#1a1a1a",
+    sub_color="#606060",
+    glow=False,
+    section_fill="#eaeaea",
+    section_edge="#c0c0c0",
+    section_edge_width=0.8,
+    section_label_color="#707070",
+    section_label_font=9,
+    section_corner_radius=0.25,
+    palette=list(PALETTES["berlin"]),
+)
+
+# Hong Kong MTR — crisp white background, corporate navy labels
+HONGKONG = Theme(
+    name="hongkong",
+    background="white",
+    station_fill="white",
+    station_edge="#868f96",
+    station_edge_width=2.5,
+    station_dot=False,
+    station_colored_edge=True,
+    label_color="#1a2a3a",
+    sub_color="#4a6070",
+    glow=False,
+    section_fill="#f0f4f8",
+    section_edge="#c8d8e8",
+    section_edge_width=0.8,
+    section_label_color="#4a6070",
+    section_label_font=9,
+    section_corner_radius=0.25,
+    palette=list(PALETTES["hongkong"]),
+)
+
 THEMES: dict[str, Theme] = {
-    "light":   LIGHT,
-    "dark":    DARK,
-    "minimal": MINIMAL,
+    "light":    LIGHT,
+    "dark":     DARK,
+    "minimal":  MINIMAL,
+    "london":   LONDON,
+    "tokyo":    TOKYO,
+    "nyc":      NYC,
+    "paris":    PARIS,
+    "berlin":   BERLIN,
+    "hongkong": HONGKONG,
 }
 
 

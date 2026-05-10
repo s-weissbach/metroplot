@@ -120,26 +120,21 @@ d = Diagram(theme="minimal")
 
 ---
 
-### City palettes
+### City themes
 
-metroplot ships with official line colours from six major metro systems. Use them to build diagrams that feel like a real transit map, or simply to get a well-tested, high-contrast palette for free.
-
-Pass the palette when constructing a `Theme`, then set `line_width` and `corner_radius` on `Diagram` to match the visual weight of the reference system.
+metroplot ships with six city themes, each bundling the official line colours of a real metro system with a matching visual style. Load any of them by name — then tune `line_width` and `corner_radius` on `Diagram` to nail the visual weight of the reference map.
 
 ---
 
-**London Underground** — TfL official colours. Thick rounded lines, white station circles with coloured rings.
+**`"london"`** — London Underground. White background, near-black labels, TfL official colours. Thick rounded tracks (Central red, Piccadilly blue, District green).
 
 <p align="center"><img src="graphics/theme_london.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, Theme
+from metroplot.themes import PALETTES
 
-london_theme = Theme(station_colored_edge=True, station_fill="white",
-                     palette=PALETTES["london"])
-d = Diagram(theme=london_theme, line_width=6, corner_radius=0.25)
-
-c1, c2, c3 = PALETTES["london"][:3]  # Central red, Piccadilly blue, District green
+d = Diagram(theme="london", line_width=6, corner_radius=0.25, legend_loc="lower left")
+c1, c2, c3 = PALETTES["london"][:3]   # Central red · Piccadilly blue · District green
 d.line("Bulk RNA-seq", c1, [...])
 d.line("scRNA-seq",    c2, [...])
 d.line("ATAC-seq",     c3, [...])
@@ -147,72 +142,82 @@ d.line("ATAC-seq",     c3, [...])
 
 ---
 
-**Tokyo Metro** — vivid, high-contrast colours. Ginza orange, Marunouchi red, Tozai cyan.
+**`"tokyo"`** — Tokyo Metro + Toei. White background, dark navy labels, vivid high-contrast colours (Ginza orange, Marunouchi red, Tozai cyan).
 
 <p align="center"><img src="graphics/theme_tokyo.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, Theme
+from metroplot.themes import PALETTES
 
-tokyo_theme = Theme(station_colored_edge=True, station_fill="white",
-                    palette=PALETTES["tokyo"])
-d = Diagram(theme=tokyo_theme, line_width=5, corner_radius=0.20)
+d = Diagram(theme="tokyo", line_width=5, corner_radius=0.20, legend_loc="lower left")
+c1, c2, c3 = PALETTES["tokyo"][:3]    # Ginza orange · Marunouchi red · Tozai cyan
+d.line("Bulk RNA-seq", c1, [...])
+d.line("scRNA-seq",    c2, [...])
+d.line("ATAC-seq",     c3, [...])
 ```
 
 ---
 
-**NYC Subway** — MTA official colours. Bold primaries with strong contrast.
+**`"nyc"`** — NYC Subway (MTA). White background, pure black labels, bold primaries with maximum contrast. Minimal corner rounding matches the map's sharp geometry.
 
 <p align="center"><img src="graphics/theme_nyc.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, Theme
+from metroplot.themes import PALETTES
 
-nyc_theme = Theme(station_colored_edge=True, station_fill="white",
-                  palette=PALETTES["nyc"])
-d = Diagram(theme=nyc_theme, line_width=6, corner_radius=0.15)
+d = Diagram(theme="nyc", line_width=7, corner_radius=0.12, legend_loc="lower left")
+c1, c2, c3 = PALETTES["nyc"][:3]      # 1/2/3 red · 4/5/6 green · 7 purple
+d.line("Bulk RNA-seq", c1, [...])
+d.line("scRNA-seq",    c2, [...])
+d.line("ATAC-seq",     c3, [...])
 ```
 
 ---
 
-**Paris Métro** — RATP official colours. Warm golds, soft blues, and pastels.
+**`"paris"`** — Paris Métro (RATP). Warm cream background, warm dark labels. Rich golds, deep blues, and pastels from the M1–M14 palette.
 
 <p align="center"><img src="graphics/theme_paris.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, Theme
+from metroplot.themes import PALETTES
 
-paris_theme = Theme(station_colored_edge=True, station_fill="white",
-                    palette=PALETTES["paris"])
-d = Diagram(theme=paris_theme, line_width=5, corner_radius=0.20)
+d = Diagram(theme="paris", line_width=5, corner_radius=0.22, legend_loc="lower left")
+c1, c2, c3 = PALETTES["paris"][:3]    # M1 gold · M2 blue · M4 purple
+d.line("Bulk RNA-seq", c1, [...])
+d.line("scRNA-seq",    c2, [...])
+d.line("ATAC-seq",     c3, [...])
 ```
 
 ---
 
-**Berlin U-Bahn / S-Bahn** — BVG official colours. A broad mix of saturated primaries and earth tones.
+**`"berlin"`** — Berlin U-Bahn / S-Bahn (BVG). Light grey background, neutral dark labels. Saturated primaries and earth tones across U- and S-Bahn lines.
 
 <p align="center"><img src="graphics/theme_berlin.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, Theme
+from metroplot.themes import PALETTES
 
-berlin_theme = Theme(station_colored_edge=True, station_fill="white",
-                     palette=PALETTES["berlin"])
-d = Diagram(theme=berlin_theme, line_width=5, corner_radius=0.20)
+d = Diagram(theme="berlin", line_width=5, corner_radius=0.18, legend_loc="lower left")
+c1, c2, c3 = PALETTES["berlin"][:3]   # U2 red · U7 blue · U6 purple
+d.line("Bulk RNA-seq", c1, [...])
+d.line("scRNA-seq",    c2, [...])
+d.line("ATAC-seq",     c3, [...])
 ```
 
 ---
 
-**Hong Kong MTR** — official line colours. Clean, corporate, high-contrast.
+**`"hongkong"`** — Hong Kong MTR. Crisp white background, corporate navy labels. Clean and high-contrast.
 
 <p align="center"><img src="graphics/theme_hongkong.png" width="100%"/></p>
 
 ```python
-from metroplot.themes import PALETTES, Theme
+from metroplot.themes import PALETTES
 
-hk_theme = Theme(station_colored_edge=True, station_fill="white",
-                 palette=PALETTES["hongkong"])
-d = Diagram(theme=hk_theme, line_width=5, corner_radius=0.20)
+d = Diagram(theme="hongkong", line_width=5, corner_radius=0.20, legend_loc="lower left")
+c1, c2, c3 = PALETTES["hongkong"][:3] # Island blue · Tsuen Wan red · Kwun Tong green
+d.line("Bulk RNA-seq", c1, [...])
+d.line("scRNA-seq",    c2, [...])
+d.line("ATAC-seq",     c3, [...])
 ```
 
 ---
