@@ -4,6 +4,7 @@
 [![python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![built on matplotlib](https://img.shields.io/badge/built%20on-matplotlib-11557c.svg)](https://matplotlib.org/)
+[![PyPI version](https://badge.fury.io/py/MetrPlot.svg)](https://badge.fury.io/py/MetrPlot)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/metroplot.svg)](https://pypi.org/project/metroplot/)
 
 **metroplot** turns bioinformatics pipelines into subway-style diagrams. You place stations on a grid, connect them with coloured lines, and metroplot handles the rest: parallel-track offsets when lines share a segment, right-angle routing, station circles, and labels.
