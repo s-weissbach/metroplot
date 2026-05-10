@@ -176,9 +176,25 @@ class Theme:
     # Background (transparent by default)
     background: str = "none"
 
-    # Station circles
+    # Station appearance
+    station_style: str = "circle"
+    # "circle"      — white circle with edge (default)
+    # "colored_dot" — solid circle in the line's colour, no edge (Paris)
+    # "solid"       — solid circle in station_edge colour, no edge (NYC)
+    # "rect"        — rounded rectangle, white fill, edge in line colour (Tokyo)
+
+    station_interchange_style: str = "pill"
+    # "pill"          — single rounded rect spanning all track offsets (default)
+    # "pill_count"    — pill sized by n_lines × circle diameter (Paris)
+    # "connected"     — full circles at each track + thin connecting bar (London)
+    # "grouped"       — individual stations inside a white rounded-rect border (NYC)
+    # "grouped_no_fill" — individual stations inside a transparent rounded-rect border (Tokyo)
+    # "merged"        — overlapping circles at each track position (Hong Kong)
+
     station_fill: str = "none"
     station_interchange_fill: str | None = None  # None → falls back to station_fill
+    station_interchange_edge: str | None = None  # None → falls back to station_edge
+    station_radius_factor: float = 1.0           # scale applied to the computed radius
     station_edge: str = "#111111"
     station_edge_width: float = 2.5
     station_dot: bool = True
@@ -284,15 +300,21 @@ MINIMAL = Theme(
 # Pair with Diagram(line_width=..., corner_radius=...) as shown in the README
 # to more closely match the reference system's visual weight.
 
-# London Underground — white background, near-black labels, thick coloured rings
+# London Underground
+# Single: small white circles, black outline. Interchange: circles connected by thin bar.
 LONDON = Theme(
     name="london",
     background="white",
+    station_style="circle",
+    station_interchange_style="connected",
     station_fill="white",
-    station_edge="#868f96",
-    station_edge_width=2.5,
+    station_interchange_fill="white",
+    station_interchange_edge="#000000",
+    station_edge="#000000",
+    station_edge_width=2.0,
+    station_radius_factor=0.62,
     station_dot=False,
-    station_colored_edge=True,
+    station_colored_edge=False,
     label_color="#0a0a0a",
     sub_color="#6e6e6e",
     glow=False,
@@ -305,13 +327,18 @@ LONDON = Theme(
     palette=list(PALETTES["london"]),
 )
 
-# Tokyo Metro — white background, dark navy labels, clean and precise
+# Tokyo Metro
+# Single: rounded rect, white fill, outline in line colour. Interchange: transparent grouped rect.
 TOKYO = Theme(
     name="tokyo",
     background="white",
+    station_style="rect",
+    station_interchange_style="grouped_no_fill",
     station_fill="white",
-    station_edge="#888888",
-    station_edge_width=2.5,
+    station_interchange_fill="none",
+    station_interchange_edge="#000000",
+    station_edge="#000000",
+    station_edge_width=2.0,
     station_dot=False,
     station_colored_edge=True,
     label_color="#1a1a2e",
@@ -326,15 +353,20 @@ TOKYO = Theme(
     palette=list(PALETTES["tokyo"]),
 )
 
-# NYC Subway — white background, pure black labels, high contrast
+# NYC Subway
+# Single: solid black circles. Interchange: black dots inside a white grouped rect.
 NYC = Theme(
     name="nyc",
     background="white",
-    station_fill="white",
-    station_edge="#888888",
-    station_edge_width=3.0,
+    station_style="solid",
+    station_interchange_style="grouped",
+    station_fill="#000000",
+    station_interchange_fill="white",
+    station_interchange_edge="#000000",
+    station_edge="#000000",
+    station_edge_width=1.0,
     station_dot=False,
-    station_colored_edge=True,
+    station_colored_edge=False,
     label_color="#000000",
     sub_color="#555555",
     glow=False,
@@ -347,15 +379,20 @@ NYC = Theme(
     palette=list(PALETTES["nyc"]),
 )
 
-# Paris Métro — warm cream background, warm dark labels
+# Paris Métro
+# Single: solid circle in line colour, no outline. Interchange: white pill, n_lines × circle width.
 PARIS = Theme(
     name="paris",
     background="#fafaf5",
+    station_style="colored_dot",
+    station_interchange_style="pill_count",
     station_fill="#fafaf5",
-    station_edge="#8a8070",
-    station_edge_width=2.5,
+    station_interchange_fill="white",
+    station_interchange_edge="#444444",
+    station_edge="none",
+    station_edge_width=0.0,
     station_dot=False,
-    station_colored_edge=True,
+    station_colored_edge=False,
     label_color="#1a1410",
     sub_color="#6e6055",
     glow=False,
@@ -368,15 +405,20 @@ PARIS = Theme(
     palette=list(PALETTES["paris"]),
 )
 
-# Berlin U-Bahn / S-Bahn — light grey background, neutral dark labels
+# Berlin U-Bahn / S-Bahn
+# Single: white circle, no visible outline. Interchange: thin elongated pill, rounded, black outline.
 BERLIN = Theme(
     name="berlin",
     background="#f4f4f4",
-    station_fill="#f4f4f4",
-    station_edge="#888888",
-    station_edge_width=2.5,
+    station_style="circle",
+    station_interchange_style="pill",
+    station_fill="white",
+    station_interchange_fill="white",
+    station_interchange_edge="#222222",
+    station_edge="#f4f4f4",       # same as background → invisible outline
+    station_edge_width=1.0,
     station_dot=False,
-    station_colored_edge=True,
+    station_colored_edge=False,
     label_color="#1a1a1a",
     sub_color="#606060",
     glow=False,
@@ -389,15 +431,21 @@ BERLIN = Theme(
     palette=list(PALETTES["berlin"]),
 )
 
-# Hong Kong MTR — crisp white background, corporate navy labels
+# Hong Kong MTR
+# Single: small white circles, black outline. Interchange: overlapping merged circles.
 HONGKONG = Theme(
     name="hongkong",
     background="white",
+    station_style="circle",
+    station_interchange_style="merged",
     station_fill="white",
-    station_edge="#868f96",
-    station_edge_width=2.5,
+    station_interchange_fill="white",
+    station_interchange_edge="#222222",
+    station_edge="#222222",
+    station_edge_width=2.0,
+    station_radius_factor=0.75,
     station_dot=False,
-    station_colored_edge=True,
+    station_colored_edge=False,
     label_color="#1a2a3a",
     sub_color="#4a6070",
     glow=False,

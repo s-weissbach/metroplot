@@ -430,85 +430,244 @@ class Diagram:
                       line_offset: dict[int, float],
                       station_spread: dict[str, str] | None = None) -> None:
         is_interchange = len(slines) > 1
+        spread = (station_spread or {}).get(s.name, "y")
+        r = radius * th.station_radius_factor   # effective draw radius
+        gid = f"metro-station-{s.name}"
 
-        if th.station_colored_edge and len(slines) == 1:
-            edge_color = self.lines[slines[0]].color
-        else:
-            edge_color = th.station_edge
+        ic_fill = th.station_interchange_fill if th.station_interchange_fill is not None else th.station_fill
+        ic_edge = th.station_interchange_edge if th.station_interchange_edge is not None else th.station_edge
+        ic_lw   = th.station_edge_width * 1.25
 
-        edge_lw = th.station_edge_width * (1.25 if is_interchange else 1.0)
-
-        # Interchange pill: a rounded rectangle spanning all track offsets.
-        # Orientation follows the spread direction: tracks offset in Y →
-        # vertical pill (tall, narrow); offset in X → horizontal pill (wide, short).
+        # ── Interchange station ──────────────────────────────────────────────────
         if is_interchange and self.station_interchange_rect:
             sdy_here = sum(line_offset[li] for li in slines) / len(slines)
-            rel = [line_offset[li] - sdy_here for li in slines]
-            pad = radius * 0.45
-            spread = (station_spread or {}).get(s.name, "y")
-            pill_fill = (th.station_interchange_fill
-                         if th.station_interchange_fill is not None
-                         else th.station_fill)
-            if spread == "x":
-                cx_pill = s.x + (min(rel) + max(rel)) / 2
-                w = max(max(rel) - min(rel) + 2 * pad, 2 * radius)
-                h = 2 * radius
-                r_box = min(w / 2, h / 2) * 0.98
-                patch = FancyBboxPatch(
-                    (cx_pill - w / 2 + r_box, cy - h / 2 + r_box),
-                    max(w - 2 * r_box, 1e-3),
-                    max(h - 2 * r_box, 1e-3),
-                    boxstyle=f"round,pad={r_box}",
-                    facecolor=pill_fill,
-                    edgecolor=edge_color,
-                    linewidth=edge_lw,
-                    zorder=10,
-                )
+            pairs = sorted((line_offset[li] - sdy_here, li) for li in slines)
+            rel = [p[0] for p in pairs]
+
+            style = th.station_interchange_style
+            if style == "connected":
+                self._draw_station_connected(ax, s, cy, r, rel, spread,
+                                             ic_fill, ic_edge, ic_lw, gid)
+            elif style == "grouped":
+                self._draw_station_grouped(ax, s, cy, r, rel, spread,
+                                           ic_fill, ic_edge, th, gid, fill_outer=True)
+            elif style == "grouped_no_fill":
+                self._draw_station_grouped(ax, s, cy, r, rel, spread,
+                                           ic_fill, ic_edge, th, gid, fill_outer=False)
+            elif style == "merged":
+                self._draw_station_merged(ax, s, cy, r, rel, spread,
+                                          th, ic_edge, ic_lw, gid)
+            elif style == "pill_count":
+                self._draw_station_pill_count(ax, s, cy, r, rel, spread,
+                                              ic_fill, ic_edge, ic_lw, len(slines), gid)
+            else:  # "pill" (default)
+                pad = r * 0.45
+                if spread == "x":
+                    cx_pill = s.x + (min(rel) + max(rel)) / 2
+                    w = max(max(rel) - min(rel) + 2 * pad, 2 * r)
+                    h = 2 * r
+                    r_box = min(w / 2, h / 2) * 0.98
+                    patch = FancyBboxPatch(
+                        (cx_pill - w / 2 + r_box, cy - h / 2 + r_box),
+                        max(w - 2 * r_box, 1e-3), max(h - 2 * r_box, 1e-3),
+                        boxstyle=f"round,pad={r_box}",
+                        facecolor=ic_fill, edgecolor=ic_edge,
+                        linewidth=ic_lw, zorder=10,
+                    )
+                else:
+                    cy_pill = cy + (min(rel) + max(rel)) / 2
+                    h = max(max(rel) - min(rel) + 2 * pad, 2 * r)
+                    w = 2 * r
+                    r_box = min(w / 2, h / 2) * 0.98
+                    patch = FancyBboxPatch(
+                        (s.x - w / 2 + r_box, cy_pill - h / 2 + r_box),
+                        max(w - 2 * r_box, 1e-3), max(h - 2 * r_box, 1e-3),
+                        boxstyle=f"round,pad={r_box}",
+                        facecolor=ic_fill, edgecolor=ic_edge,
+                        linewidth=ic_lw, zorder=10,
+                    )
+                patch.set_gid(gid)
+                ax.add_patch(patch)
+            return
+
+        # ── Single-line station ──────────────────────────────────────────────────
+        line_color = self.lines[slines[0]].color if slines else th.station_edge
+        edge_color = line_color if th.station_colored_edge else th.station_edge
+
+        style = th.station_style
+        if style == "colored_dot":
+            p = Circle((s.x, cy), r, facecolor=line_color, edgecolor="none", zorder=10)
+            p.set_gid(gid)
+            ax.add_patch(p)
+
+        elif style == "solid":
+            p = Circle((s.x, cy), r, facecolor=th.station_fill,
+                       edgecolor="none", zorder=10)
+            p.set_gid(gid)
+            ax.add_patch(p)
+
+        elif style == "rect":
+            if spread == "y":
+                w_r, h_r = 1.3 * r, 2.2 * r
             else:
-                cy_pill = cy + (min(rel) + max(rel)) / 2
-                h = max(max(rel) - min(rel) + 2 * pad, 2 * radius)
-                w = 2 * radius
-                r_box = min(w / 2, h / 2) * 0.98
-                patch = FancyBboxPatch(
-                    (s.x - w / 2 + r_box, cy_pill - h / 2 + r_box),
-                    max(w - 2 * r_box, 1e-3),
-                    max(h - 2 * r_box, 1e-3),
-                    boxstyle=f"round,pad={r_box}",
-                    facecolor=pill_fill,
-                    edgecolor=edge_color,
-                    linewidth=edge_lw,
-                    zorder=10,
-                )
-            patch.set_gid(f"metro-station-{s.name}")
-            ax.add_patch(patch)
-            return  # pill replaces both outer ring and inner dot
+                w_r, h_r = 2.2 * r, 1.3 * r
+            r_box = min(w_r, h_r) / 2 * 0.92
+            p = FancyBboxPatch(
+                (s.x - w_r / 2 + r_box, cy - h_r / 2 + r_box),
+                max(w_r - 2 * r_box, 1e-3), max(h_r - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=th.station_fill, edgecolor=edge_color,
+                linewidth=th.station_edge_width, zorder=10,
+            )
+            p.set_gid(gid)
+            ax.add_patch(p)
 
-        outer = Circle(
-            (s.x, cy), radius,
-            facecolor=th.station_fill,
-            edgecolor=edge_color,
-            linewidth=edge_lw,
-            zorder=10,
-        )
-        outer.set_gid(f"metro-station-{s.name}")
-        ax.add_patch(outer)
+        else:  # "circle"
+            outer = Circle((s.x, cy), r, facecolor=th.station_fill,
+                           edgecolor=edge_color,
+                           linewidth=th.station_edge_width, zorder=10)
+            outer.set_gid(gid)
+            ax.add_patch(outer)
+            if th.station_dot:
+                primary_color = self.lines[slines[0]].color
+                ax.add_patch(Circle((s.x, cy), r * th.station_dot_ratio,
+                                    facecolor=primary_color, edgecolor="none", zorder=11))
 
-        if th.station_dot and len(slines) == 1:
-            primary_color = self.lines[slines[0]].color
-            ax.add_patch(Circle(
-                (s.x, cy), radius * th.station_dot_ratio,
-                facecolor=primary_color,
-                edgecolor="none",
-                zorder=11,
+    def _draw_station_connected(self, ax, s, cy, r, rel, spread,
+                                fill, edge, lw, gid):
+        """London: full circles at each track + thin connecting bar."""
+        bar_half = r * 0.28
+        if spread == "y":
+            ycs = [cy + o for o in rel]
+            bar_lo, bar_hi = min(ycs), max(ycs)
+            if bar_hi > bar_lo + 1e-3:
+                ax.add_patch(FancyBboxPatch(
+                    (s.x - bar_half, bar_lo),
+                    2 * bar_half, bar_hi - bar_lo,
+                    boxstyle="round,pad=0",
+                    facecolor=fill, edgecolor=edge, linewidth=lw, zorder=9,
+                ))
+            for yc in ycs:
+                ax.add_patch(Circle((s.x, yc), r, facecolor=fill,
+                                    edgecolor=edge, linewidth=lw, zorder=10))
+        else:
+            xcs = [s.x + o for o in rel]
+            bar_lo, bar_hi = min(xcs), max(xcs)
+            if bar_hi > bar_lo + 1e-3:
+                ax.add_patch(FancyBboxPatch(
+                    (bar_lo, cy - bar_half),
+                    bar_hi - bar_lo, 2 * bar_half,
+                    boxstyle="round,pad=0",
+                    facecolor=fill, edgecolor=edge, linewidth=lw, zorder=9,
+                ))
+            for xc in xcs:
+                ax.add_patch(Circle((xc, cy), r, facecolor=fill,
+                                    edgecolor=edge, linewidth=lw, zorder=10))
+        ax.patches[-1].set_gid(gid)
+
+    def _draw_station_grouped(self, ax, s, cy, r, rel, spread,
+                              ic_fill, ic_edge, th, gid, *, fill_outer):
+        """NYC/Tokyo: outer rounded rect enclosing individual station markers."""
+        pad = r * 0.35
+        lw  = th.station_edge_width
+        outer_fill = ic_fill if fill_outer else "none"
+        if spread == "y":
+            ycs = [cy + o for o in rel]
+            y_lo = min(ycs) - r - pad
+            h_outer = (max(ycs) + r + pad) - y_lo
+            w_outer = 2 * r + 2 * pad
+            r_box = min(w_outer, h_outer) / 2 * 0.45
+            ax.add_patch(FancyBboxPatch(
+                (s.x - w_outer / 2 + r_box, y_lo + r_box),
+                max(w_outer - 2 * r_box, 1e-3), max(h_outer - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=outer_fill, edgecolor=ic_edge, linewidth=lw, zorder=9,
             ))
-        elif th.station_dot and is_interchange:
-            muted = "#888888" if th.background in ("white", "#fafaf8") else "#666666"
-            ax.add_patch(Circle(
-                (s.x, cy), radius * th.station_dot_ratio,
-                facecolor=muted,
-                edgecolor="none",
-                zorder=11,
+            for yc in ycs:
+                self._draw_grouped_inner(ax, s.x, yc, r, th, spread)
+        else:
+            xcs = [s.x + o for o in rel]
+            x_lo = min(xcs) - r - pad
+            w_outer = (max(xcs) + r + pad) - x_lo
+            h_outer = 2 * r + 2 * pad
+            r_box = min(w_outer, h_outer) / 2 * 0.45
+            ax.add_patch(FancyBboxPatch(
+                (x_lo + r_box, cy - h_outer / 2 + r_box),
+                max(w_outer - 2 * r_box, 1e-3), max(h_outer - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=outer_fill, edgecolor=ic_edge, linewidth=lw, zorder=9,
             ))
+            for xc in xcs:
+                self._draw_grouped_inner(ax, xc, cy, r, th, spread)
+        ax.patches[-1].set_gid(gid)
+
+    def _draw_grouped_inner(self, ax, x, y, r, th, spread):
+        """Draw one station marker inside a grouped interchange."""
+        style = th.station_style
+        if style == "rect":
+            if spread == "y":
+                w_r, h_r = 1.3 * r, 2.2 * r
+            else:
+                w_r, h_r = 2.2 * r, 1.3 * r
+            r_box = min(w_r, h_r) / 2 * 0.92
+            ax.add_patch(FancyBboxPatch(
+                (x - w_r / 2 + r_box, y - h_r / 2 + r_box),
+                max(w_r - 2 * r_box, 1e-3), max(h_r - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=th.station_fill, edgecolor=th.station_interchange_edge or th.station_edge,
+                linewidth=th.station_edge_width, zorder=10,
+            ))
+        else:  # solid / circle
+            ax.add_patch(Circle((x, y), r, facecolor=th.station_fill,
+                                edgecolor="none", zorder=10))
+
+    def _draw_station_merged(self, ax, s, cy, r, rel, spread,
+                             th, ic_edge, ic_lw, gid):
+        """Hong Kong: overlapping circles at each track, spaced 1.5 r apart."""
+        n = len(rel)
+        spacing = r * 1.5
+        if spread == "y":
+            offsets = [(i - (n - 1) / 2) * spacing for i in range(n)]
+            for yo in offsets:
+                ax.add_patch(Circle((s.x, cy + yo), r,
+                                    facecolor=th.station_interchange_fill or th.station_fill,
+                                    edgecolor=ic_edge, linewidth=ic_lw, zorder=10))
+        else:
+            offsets = [(i - (n - 1) / 2) * spacing for i in range(n)]
+            for xo in offsets:
+                ax.add_patch(Circle((s.x + xo, cy), r,
+                                    facecolor=th.station_interchange_fill or th.station_fill,
+                                    edgecolor=ic_edge, linewidth=ic_lw, zorder=10))
+        ax.patches[-1].set_gid(gid)
+
+    def _draw_station_pill_count(self, ax, s, cy, r, rel, spread,
+                                 ic_fill, ic_edge, ic_lw, n_lines, gid):
+        """Paris: pill sized exactly as n_lines × circle diameter."""
+        mid = (min(rel) + max(rel)) / 2
+        if spread == "x":
+            w = n_lines * 2 * r
+            h = 2 * r
+            cx = s.x + mid
+            r_box = h / 2 * 0.98
+            patch = FancyBboxPatch(
+                (cx - w / 2 + r_box, cy - h / 2 + r_box),
+                max(w - 2 * r_box, 1e-3), max(h - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=ic_fill, edgecolor=ic_edge, linewidth=ic_lw, zorder=10,
+            )
+        else:
+            h = n_lines * 2 * r
+            w = 2 * r
+            cy_pill = cy + mid
+            r_box = w / 2 * 0.98
+            patch = FancyBboxPatch(
+                (s.x - w / 2 + r_box, cy_pill - h / 2 + r_box),
+                max(w - 2 * r_box, 1e-3), max(h - 2 * r_box, 1e-3),
+                boxstyle=f"round,pad={r_box}",
+                facecolor=ic_fill, edgecolor=ic_edge, linewidth=ic_lw, zorder=10,
+            )
+        patch.set_gid(gid)
+        ax.add_patch(patch)
 
     def _draw_segment(self, ax, sa: Station, sb: Station, ln: Line,
                       offset: float, bend: str, *, gid: str, theme: Theme) -> None:
