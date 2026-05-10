@@ -150,13 +150,11 @@ def _extract_route_path(root: ET.Element, li: int) -> str:
 
     ordered = [segments[i] for i in sorted(segments)]
 
-    # Keep first segment as-is; for each subsequent segment strip the leading
-    # "M x y" so the path continues from the previous endpoint.
-    result = ordered[0]
-    for seg in ordered[1:]:
-        rest = _INITIAL_M.sub("", seg)
-        if rest:
-            result += " " + rest
+    # Preserve each segment's "M x y" so the cart snaps to the correct lateral
+    # offset position at each segment boundary rather than interpolating
+    # diagonally across the gap.  With calcMode="paced" the M (moveto) is
+    # zero-length and consumes no animation time, so the snap is invisible.
+    result = " ".join(ordered)
     return result
 
 
