@@ -131,3 +131,82 @@ def test_bend_hv_vs_vh_corner_differs():
     assert corners(ax_hv) != corners(ax_vh)
     assert len(corners(ax_hv)) == 1 and len(corners(ax_vh)) == 1
     plt.close("all")
+
+
+def test_edge_label_horizontal_places_text():
+    d = (Diagram()
+         .station("a", 0, 0, "A")
+         .station("b", 4, 0, "B")
+         .line("main", "#e63946", [["a", "b"]], edge_labels={("a", "b"): "TPM"}))
+    ax = d.render()
+    texts = [t.get_text() for t in ax.texts]
+    assert "TPM" in texts
+    plt.close("all")
+
+
+def test_edge_label_vertical_places_text():
+    d = (Diagram()
+         .station("a", 0, 0, "A")
+         .station("b", 0, 4, "B")
+         .line("main", "#e63946", [["a", "b"]], edge_labels={("a", "b"): "count"}))
+    ax = d.render()
+    texts = [t.get_text() for t in ax.texts]
+    assert "count" in texts
+    plt.close("all")
+
+
+def test_edge_label_interrupts_track():
+    """A labeled segment should produce two line segments, not one."""
+    d = (Diagram()
+         .station("a", 0, 0, "A")
+         .station("b", 6, 0, "B")
+         .line("main", "#e63946", [["a", "b"]], edge_labels={("a", "b"): "X"}))
+    ax = d.render()
+    # Two halves instead of one full segment
+    horizontals = [ln for ln in ax.get_lines()
+                   if len(ln.get_xdata()) == 2 and ln.get_ydata()[0] == ln.get_ydata()[-1]]
+    assert len(horizontals) == 2
+    # The two halves should straddle the midpoint (x=3)
+    x_maxes = sorted(max(ln.get_xdata()) for ln in horizontals)
+    x_mins = sorted(min(ln.get_xdata()) for ln in horizontals)
+    assert x_maxes[0] < 3.0   # left half ends before midpoint
+    assert x_mins[1] > 3.0    # right half starts after midpoint
+    plt.close("all")
+
+
+def test_edge_label_key_order_independent():
+    """edge_labels should work regardless of key tuple order."""
+    d = (Diagram()
+         .station("a", 0, 0)
+         .station("b", 4, 0)
+         .line("main", "#e63946", [["a", "b"]], edge_labels={("b", "a"): "rev"}))
+    ax = d.render()
+    texts = [t.get_text() for t in ax.texts]
+    assert "rev" in texts
+    plt.close("all")
+
+
+def test_edge_label_color_matches_line():
+    d = (Diagram()
+         .station("a", 0, 0)
+         .station("b", 4, 0)
+         .line("main", "#e63946", [["a", "b"]], edge_labels={("a", "b"): "hi"}))
+    ax = d.render()
+    label_texts = [t for t in ax.texts if t.get_text() == "hi"]
+    assert label_texts
+    assert label_texts[0].get_color() == "#e63946"
+    plt.close("all")
+
+
+def test_edge_label_on_lbend_warns():
+    """Labels on non-straight (L-bend) segments should warn and be skipped."""
+    import warnings as _w
+    d = (Diagram()
+         .station("a", 0, 0)
+         .station("b", 3, -2)
+         .line("main", "#e63946", [["a", "b"]], edge_labels={("a", "b"): "skip"}))
+    with _w.catch_warnings(record=True) as caught:
+        _w.simplefilter("always")
+        d.render()
+    assert any("straight" in str(w.message) for w in caught)
+    plt.close("all")
