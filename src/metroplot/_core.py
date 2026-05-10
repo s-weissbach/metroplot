@@ -389,13 +389,12 @@ class Diagram:
             pad = radius * 0.45
             spread = (station_spread or {}).get(s.name, "y")
             if spread == "x":
-                x_lo = s.x + min(rel) - pad
-                x_hi = s.x + max(rel) + pad
-                w = x_hi - x_lo
-                h = radius * 1.3
+                cx_pill = s.x + (min(rel) + max(rel)) / 2
+                w = max(max(rel) - min(rel) + 2 * pad, 2 * radius)
+                h = 2 * radius
                 r_box = min(w / 2, h / 2) * 0.98
                 patch = FancyBboxPatch(
-                    (x_lo + r_box, cy - h / 2 + r_box),
+                    (cx_pill - w / 2 + r_box, cy - h / 2 + r_box),
                     max(w - 2 * r_box, 1e-3),
                     max(h - 2 * r_box, 1e-3),
                     boxstyle=f"round,pad={r_box}",
@@ -405,13 +404,12 @@ class Diagram:
                     zorder=10,
                 )
             else:
-                y_lo = cy + min(rel) - pad
-                y_hi = cy + max(rel) + pad
-                h = y_hi - y_lo
-                w = radius * 1.3
+                cy_pill = cy + (min(rel) + max(rel)) / 2
+                h = max(max(rel) - min(rel) + 2 * pad, 2 * radius)
+                w = 2 * radius
                 r_box = min(w / 2, h / 2) * 0.98
                 patch = FancyBboxPatch(
-                    (s.x - w / 2 + r_box, y_lo + r_box),
+                    (s.x - w / 2 + r_box, cy_pill - h / 2 + r_box),
                     max(w - 2 * r_box, 1e-3),
                     max(h - 2 * r_box, 1e-3),
                     boxstyle=f"round,pad={r_box}",
