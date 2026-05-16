@@ -122,7 +122,7 @@ d = Diagram(theme="minimal")
 
 ### City themes
 
-metroplot ships with six city themes, each bundling the official line colours of a real metro system with a matching visual style. Load any of them by name — then tune `line_width` and `corner_radius` on `Diagram` to nail the visual weight of the reference map.
+metroplot ships with four city themes, each bundling the official line colours of a real metro system with a matching visual style. Load any of them by name — then tune `line_width` and `corner_radius` on `Diagram` to nail the visual weight of the reference map.
 
 ---
 
@@ -377,7 +377,7 @@ Pass any of these to `Diagram(...)` to control the visual output:
 |---|---|---|
 | `line_width` | `4.0` | Track stroke width in points |
 | `track_spacing` | `0.09` | Gap between parallel tracks on a shared segment, in data units |
-| `station_radius` | `0.21` | Station circle radius in data units |
+| `station_radius` | `0.14` | Station circle radius in data units |
 | `station_linewidth` | `2.5` | Station circle border width in points |
 | `corner_radius` | `0.20` | Rounding radius for L-bend corners, in data units |
 | `label_font` | `9` | Font size for station main labels, in points |
