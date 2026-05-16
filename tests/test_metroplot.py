@@ -43,10 +43,12 @@ def test_split_routes_share_a_station():
          .station("d", 4, 0, "D")
          .line("split", "#e07a6b", [["a", "b", "c"], ["b", "d"]]))
     ax = d.render()
-    lines = ax.get_lines()
-    # 2 segments for first route + 1 for the branch = 3 drawn segments
-    # (vertical/horizontal hops for the L-bend on a→c-via-b are split into 2 plot calls)
-    assert len(lines) >= 3
+    # a→b→c is now a single merged PathPatch (smooth turn at b); b→d is a Line2D.
+    # Count all track drawing objects regardless of type.
+    track_objects = list(ax.get_lines()) + [
+        p for p in ax.patches if isinstance(p, PathPatch)
+    ]
+    assert len(track_objects) >= 2
     plt.close("all")
 
 

@@ -270,12 +270,40 @@ class Diagram:
         _deferred_labels = []
         for li, ln in enumerate(self.lines):
             for ri, route in enumerate(ln.routes):
-                for si, (a, b) in enumerate(zip(route[:-1], route[1:])):
+                pairs = list(zip(route[:-1], route[1:]))
+                si = 0
+                while si < len(pairs):
+                    a, b = pairs[si]
                     sa, sb = self.stations[a], self.stations[b]
                     bend = pre_bends[(li, ri, si)]
                     gid = f"metro-track-{li}-{ri}-{si}"
                     key = tuple(sorted([a, b]))
                     edge_label = ln.edge_labels.get(key)
+
+                    # Detect L-turn at station b: two consecutive orthogonal
+                    # straight segments meeting at b with no edge labels.
+                    # Draw as a single continuous path so the turn is smooth.
+                    turn_merged = False
+                    if edge_label is None and si + 1 < len(pairs):
+                        _, c = pairs[si + 1]
+                        sc = self.stations[c]
+                        next_edge = ln.edge_labels.get(tuple(sorted([b, c])))
+                        a_to_b_h = sa.y == sb.y and sa.x != sb.x
+                        b_to_c_v = sb.x == sc.x and sb.y != sc.y
+                        a_to_b_v = sa.x == sb.x and sa.y != sb.y
+                        b_to_c_h = sb.y == sc.y and sb.x != sc.x
+                        if next_edge is None and (
+                            (a_to_b_h and b_to_c_v) or (a_to_b_v and b_to_c_h)
+                        ):
+                            self._draw_turn_at_station(
+                                ax, sa, sb, sc, ln, line_offset[li],
+                                gid=gid, theme=th)
+                            si += 2
+                            turn_merged = True
+
+                    if turn_merged:
+                        continue
+
                     if edge_label is not None and (sa.x == sb.x or sa.y == sb.y):
                         _deferred_labels.append((
                             sa.x, sa.y, sb.x, sb.y,
@@ -291,6 +319,7 @@ class Diagram:
                             )
                         self._draw_segment(ax, sa, sb, ln, line_offset[li], bend,
                                            gid=gid, theme=th)
+                    si += 1
 
         for s in self.stations.values():
             cy = s.y + station_dy.get(s.name, 0.0)
@@ -816,6 +845,38 @@ class Diagram:
             )
         patch.set_gid(gid)
         ax.add_patch(patch)
+
+    def _draw_turn_at_station(self, ax, sa: Station, sb: Station, sc: Station,
+                              ln: Line, offset: float, *, gid: str,
+                              theme: Theme) -> None:
+        """Draw a smooth rounded L-turn through station sb.
+
+        sa→sb and sb→sc must be consecutive orthogonal straight segments
+        (one horizontal, one vertical).  The two offset legs meet at
+        (sb.x+offset, sb.y+offset); _rounded_l produces a single continuous
+        arc there instead of two disjoint lines with a gap.
+        """
+        corner = (sb.x + offset, sb.y + offset)
+        if sa.y == sb.y:          # horizontal → vertical
+            start = (sa.x, sa.y + offset)
+            end   = (sc.x + offset, sc.y)
+        else:                      # vertical → horizontal
+            start = (sa.x + offset, sa.y)
+            end   = (sc.x, sc.y + offset)
+
+        verts, codes = self._rounded_l(start, corner, end)
+        kw = dict(fill=False, edgecolor=ln.color,
+                  capstyle="round", joinstyle="round")
+        if theme.glow:
+            ax.add_patch(PathPatch(
+                MPath(verts, codes),
+                linewidth=self.line_width * theme.glow_width_multiplier,
+                alpha=theme.glow_alpha, zorder=4, **kw))
+        pp = PathPatch(MPath(verts, codes),
+                       linewidth=self.line_width, alpha=1.0, zorder=5, **kw)
+        if gid:
+            pp.set_gid(gid)
+        ax.add_patch(pp)
 
     def _draw_segment(self, ax, sa: Station, sb: Station, ln: Line,
                       offset: float, bend: str, *, gid: str, theme: Theme) -> None:
