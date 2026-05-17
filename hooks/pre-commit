@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Pre-commit hook: re-render all metroplot graphics before every commit.
+# Install: ln -sf ../../hooks/pre-commit .git/hooks/pre-commit
+set -e
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+echo "[metroplot] re-rendering graphics..."
+
+python examples/make_layout_images.py
+python examples/make_theme_images.py
+python examples/make_city_layout_images.py
+python -c "
+import matplotlib, sys
+matplotlib.use('Agg')
+sys.path.insert(0, 'src')
+exec(open('examples/example.py').read())
+"
+python examples/example_edge_labels.py
+python _make_animated.py
+
+git add graphics/
+echo "[metroplot] graphics staged."
