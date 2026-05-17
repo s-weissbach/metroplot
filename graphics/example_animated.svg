@@ -6,7 +6,7 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2026-05-16T23:43:16.705108</dc:date>
+    <dc:date>2026-05-17T00:24:47.202132</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -40,7 +40,7 @@ Q 93.375966 427.901073 93.375966 452.879614
 L 93.375966 515.325966 
 Q 93.375966 540.304506 118.354506 540.304506 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
     <path d="M 867.71073 625.543777 
@@ -53,7 +53,7 @@ Q 842.732189 337.041631 842.732189 362.020172
 L 842.732189 600.565236 
 Q 842.732189 625.543777 867.71073 625.543777 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
     <path d="M 502.399571 159.069528 
@@ -66,7 +66,7 @@ Q 477.42103 65.4 477.42103 90.378541
 L 477.42103 134.090987 
 Q 477.42103 159.069528 502.399571 159.069528 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
     <path d="M 315.060515 278.34206 
@@ -79,7 +79,7 @@ Q 290.081974 184.672532 290.081974 209.651073
 L 290.081974 253.363519 
 Q 290.081974 278.34206 315.060515 278.34206 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_6">
     <path d="M 124.599142 417.597425 
@@ -92,7 +92,7 @@ Q 99.620601 317.683262 99.620601 342.661803
 L 99.620601 392.618884 
 Q 99.620601 417.597425 124.599142 417.597425 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_7">
     <path d="M 315.060515 647.4 
@@ -105,163 +105,163 @@ Q 290.081974 553.730472 290.081974 578.709013
 L 290.081974 622.421459 
 Q 290.081974 647.4 315.060515 647.4 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #f4f7fa; stroke: #d0dce8; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="metro-track-0-0-0">
     <path d="M 149.577682 492.533047 
 L 336.916738 492.533047 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-1">
     <path d="M 336.916738 492.533047 
 L 524.255794 492.533047 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-2">
     <path d="M 524.255794 492.533047 
 L 711.59485 492.533047 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-3">
     <path d="M 711.59485 492.533047 
 L 878.014378 492.533047 
 Q 890.503648 492.533047 890.503648 480.043777 
 L 890.503648 398.863519 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-4">
     <path d="M 890.503648 398.863519 
 L 890.503648 380.129614 
 Q 890.503648 367.640343 878.014378 367.640343 
 L 711.59485 367.640343 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-5">
     <path d="M 711.59485 367.640343 
 L 524.255794 367.640343 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-6">
     <path d="M 524.255794 367.640343 
 L 336.916738 367.640343 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-0-0-7">
     <path d="M 336.916738 367.640343 
 L 149.577682 367.640343 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #e8614a; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-1-0-0">
     <path d="M 149.577682 486.912876 
 L 336.916738 486.912876 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-1-0-1">
     <path d="M 336.916738 486.912876 
 L 524.255794 486.912876 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-1-0-2">
     <path d="M 524.255794 486.912876 
 L 711.59485 486.912876 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-1-0-3">
     <path d="M 711.59485 486.912876 
 L 883.634549 486.912876 
 Q 896.12382 486.912876 896.12382 474.423605 
 L 896.12382 393.243348 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-1-0-4">
     <path d="M 896.12382 393.243348 
 L 896.12382 124.724034 
 Q 896.12382 112.234764 883.634549 112.234764 
 L 711.59485 112.234764 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-1-0-5">
     <path d="M 711.59485 112.234764 
 L 524.255794 112.234764 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #a8dadc; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-0">
     <path d="M 149.577682 481.292704 
 L 336.916738 481.292704 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-1">
     <path d="M 336.916738 481.292704 
 L 524.255794 481.292704 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-2">
     <path d="M 524.255794 481.292704 
 L 711.59485 481.292704 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-3">
     <path d="M 711.59485 481.292704 
 L 889.254721 481.292704 
 Q 901.743991 481.292704 901.743991 468.803433 
 L 901.743991 387.623176 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-4">
     <path d="M 901.743991 387.623176 
 L 901.743991 243.996567 
 Q 901.743991 231.507296 889.254721 231.507296 
 L 711.59485 231.507296 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-5">
     <path d="M 711.59485 231.507296 
 L 524.255794 231.507296 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-2-0-6">
     <path d="M 524.255794 231.507296 
 L 336.916738 231.507296 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #1d3557; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-0">
     <path d="M 149.577682 475.672532 
 L 336.916738 475.672532 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-1">
     <path d="M 336.916738 475.672532 
 L 524.255794 475.672532 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-2">
     <path d="M 524.255794 475.672532 
 L 711.59485 475.672532 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-3">
     <path d="M 711.59485 475.672532 
 L 894.874893 475.672532 
 Q 907.364163 475.672532 907.364163 488.161803 
 L 907.364163 569.34206 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-4">
     <path d="M 907.364163 569.34206 
 L 907.364163 588.075966 
 Q 907.364163 600.565236 894.874893 600.565236 
 L 711.59485 600.565236 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-5">
     <path d="M 711.59485 600.565236 
 L 524.255794 600.565236 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <g id="metro-track-3-0-6">
     <path d="M 524.255794 600.565236 
 L 336.916738 600.565236 
-" clip-path="url(#p3baa33b6d7)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
+" clip-path="url(#p3dfeda8728)" style="fill: none; stroke: #457b9d; stroke-width: 3.5; stroke-linecap: round"/>
    </g>
    <defs>
 <path id="metro-route-0" d="M 149.577682 492.533047  L 336.916738 492.533047 M 336.916738 492.533047  L 524.255794 492.533047 M 524.255794 492.533047  L 711.59485 492.533047 M 711.59485 492.533047  L 878.014378 492.533047  Q 890.503648 492.533047 890.503648 480.043777  L 890.503648 398.863519 M 890.503648 398.863519  L 890.503648 380.129614  Q 890.503648 367.640343 878.014378 367.640343  L 711.59485 367.640343 M 711.59485 367.640343  L 524.255794 367.640343 M 524.255794 367.640343  L 336.916738 367.640343 M 336.916738 367.640343  L 149.577682 367.640343" fill="none" stroke="none"/>
@@ -270,22 +270,22 @@ L 336.916738 600.565236
 <path id="metro-route-3" d="M 149.577682 475.672532  L 336.916738 475.672532 M 336.916738 475.672532  L 524.255794 475.672532 M 524.255794 475.672532  L 711.59485 475.672532 M 711.59485 475.672532  L 894.874893 475.672532  Q 907.364163 475.672532 907.364163 488.161803  L 907.364163 569.34206 M 907.364163 569.34206  L 907.364163 588.075966  Q 907.364163 600.565236 894.874893 600.565236  L 711.59485 600.565236 M 711.59485 600.565236  L 524.255794 600.565236 M 524.255794 600.565236  L 336.916738 600.565236" fill="none" stroke="none"/>
 </defs>
 <g id="metro-carts">
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-10.73s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-4.14s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-16.76s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-3.79s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-2.91s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-17.82s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-2.35s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-15.86s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-19.25s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-12.17s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-12.71s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-13.21s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-6.62s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-18.56s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-18.49s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
-<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-5.32s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-4.12s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-6.58s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-19.54s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-19.54s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-0"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-9.94s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-3.90s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-13.01s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-9.89s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-1"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-6.81s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-6.39s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-15.75s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-12.16s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-2"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-3.73s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-0.76s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-11.76s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
+<rect width="9.1" height="4.5" x="-4.5" y="-2.3" rx="1.1" fill="#ffffff" stroke="#222222" stroke-width="1.1" opacity="0.88"><animateMotion dur="20.0s" begin="-4.39s" repeatCount="indefinite" rotate="auto" calcMode="paced"><mpath xlink:href="#metro-route-3"/></animateMotion></rect>
 </g>
 <g id="metro-station-fastq">
     <path d="M 149.327317 498.166279 
@@ -298,7 +298,7 @@ Q 137.059389 470.0393 137.059389 482.307228
 L 137.059389 485.898352 
 Q 137.059389 498.166279 149.327317 498.166279 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-fastqc_raw">
     <path d="M 336.666372 498.166279 
@@ -311,7 +311,7 @@ Q 324.398444 470.0393 324.398444 482.307228
 L 324.398444 485.898352 
 Q 324.398444 498.166279 336.666372 498.166279 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-trim">
     <path d="M 524.005428 498.166279 
@@ -324,7 +324,7 @@ Q 511.7375 470.0393 511.7375 482.307228
 L 511.7375 485.898352 
 Q 511.7375 498.166279 524.005428 498.166279 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-fastqc_trim">
     <path d="M 711.344484 498.166279 
@@ -337,7 +337,7 @@ Q 699.076556 470.0393 699.076556 482.307228
 L 699.076556 485.898352 
 Q 699.076556 498.166279 711.344484 498.166279 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-star">
     <path d="M 898.68354 405.761641 
@@ -350,7 +350,7 @@ Q 886.415612 380.725054 886.415612 392.992982
 L 886.415612 393.493714 
 Q 886.415612 405.761641 898.68354 405.761641 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #555555; stroke-width: 2.5; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-hisat2">
     <path d="M 898.933906 577.103402 
@@ -363,7 +363,7 @@ C 891.990347 565.309423 891.172563 567.283728 891.172563 569.34206
 C 891.172563 571.400392 891.990347 573.374697 893.445808 574.830158 
 C 894.901268 576.285618 896.875574 577.103402 898.933906 577.103402 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-rmats">
     <path d="M 711.59485 119.996106 
@@ -376,7 +376,7 @@ C 704.651292 108.202127 703.833508 110.176432 703.833508 112.234764
 C 703.833508 114.293096 704.651292 116.267401 706.106752 117.722862 
 C 707.562213 119.178322 709.536518 119.996106 711.59485 119.996106 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #a8dadc; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #a8dadc; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-maser">
     <path d="M 524.255794 119.996106 
@@ -389,7 +389,7 @@ C 517.312236 108.202127 516.494452 110.176432 516.494452 112.234764
 C 516.494452 114.293096 517.312236 116.267401 518.767696 117.722862 
 C 520.223157 119.178322 522.197462 119.996106 524.255794 119.996106 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #a8dadc; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #a8dadc; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-gatk_split">
     <path d="M 711.59485 239.268638 
@@ -402,7 +402,7 @@ C 704.651292 227.474659 703.833508 229.448964 703.833508 231.507296
 C 703.833508 233.565628 704.651292 235.539933 706.106752 236.995394 
 C 707.562213 238.450854 709.536518 239.268638 711.59485 239.268638 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #1d3557; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #1d3557; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-haplotype">
     <path d="M 524.255794 239.268638 
@@ -415,7 +415,7 @@ C 517.312236 227.474659 516.494452 229.448964 516.494452 231.507296
 C 516.494452 233.565628 517.312236 235.539933 518.767696 236.995394 
 C 520.223157 238.450854 522.197462 239.268638 524.255794 239.268638 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #1d3557; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #1d3557; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-snpeff">
     <path d="M 336.916738 239.268638 
@@ -428,7 +428,7 @@ C 329.97318 227.474659 329.155396 229.448964 329.155396 231.507296
 C 329.155396 233.565628 329.97318 235.539933 331.428641 236.995394 
 C 332.884101 238.450854 334.858406 239.268638 336.916738 239.268638 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #1d3557; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #1d3557; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-umitools">
     <path d="M 711.59485 375.401685 
@@ -441,7 +441,7 @@ C 704.651292 363.607706 703.833508 365.582011 703.833508 367.640343
 C 703.833508 369.698675 704.651292 371.67298 706.106752 373.128441 
 C 707.562213 374.583901 709.536518 375.401685 711.59485 375.401685 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-fcounts">
     <path d="M 524.255794 375.401685 
@@ -454,7 +454,7 @@ C 517.312236 363.607706 516.494452 365.582011 516.494452 367.640343
 C 516.494452 369.698675 517.312236 371.67298 518.767696 373.128441 
 C 520.223157 374.583901 522.197462 375.401685 524.255794 375.401685 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-deseq2">
     <path d="M 336.916738 375.401685 
@@ -467,7 +467,7 @@ C 329.97318 363.607706 329.155396 365.582011 329.155396 367.640343
 C 329.155396 369.698675 329.97318 371.67298 331.428641 373.128441 
 C 332.884101 374.583901 334.858406 375.401685 336.916738 375.401685 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-clustprof">
     <path d="M 149.577682 375.401685 
@@ -480,7 +480,7 @@ C 142.634124 363.607706 141.81634 365.582011 141.81634 367.640343
 C 141.81634 369.698675 142.634124 371.67298 144.089585 373.128441 
 C 145.545045 374.583901 147.51935 375.401685 149.577682 375.401685 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #e8614a; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-samtools">
     <path d="M 711.59485 608.326578 
@@ -493,7 +493,7 @@ C 704.651292 596.532599 703.833508 598.506904 703.833508 600.565236
 C 703.833508 602.623568 704.651292 604.597873 706.106752 606.053334 
 C 707.562213 607.508794 709.536518 608.326578 711.59485 608.326578 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-bigtwig">
     <path d="M 524.255794 608.326578 
@@ -506,7 +506,7 @@ C 517.312236 596.532599 516.494452 598.506904 516.494452 600.565236
 C 516.494452 602.623568 517.312236 604.597873 518.767696 606.053334 
 C 520.223157 607.508794 522.197462 608.326578 524.255794 608.326578 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="metro-station-deeptools">
     <path d="M 336.916738 608.326578 
@@ -519,7 +519,7 @@ C 329.97318 596.532599 329.155396 598.506904 329.155396 600.565236
 C 329.155396 602.623568 329.97318 604.597873 331.428641 606.053334 
 C 332.884101 607.508794 334.858406 608.326578 336.916738 608.326578 
 z
-" clip-path="url(#p3baa33b6d7)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
+" clip-path="url(#p3dfeda8728)" style="fill: #ffffff; stroke: #457b9d; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="text_1">
     <!-- Pre-processing -->
@@ -2944,7 +2944,7 @@ L 956.002213 689.020312
   </g>
  </g>
  <defs>
-  <clipPath id="p3baa33b6d7">
+  <clipPath id="p3dfeda8728">
    <rect x="7.2" y="7.2" width="1034.111588" height="698.4"/>
   </clipPath>
  </defs>
